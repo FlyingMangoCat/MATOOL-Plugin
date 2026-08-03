@@ -2,6 +2,7 @@
  * MATOOL-Plugin - 设置指令
  *
  * #墨安绑定[key]   所有用户绑定自己的 Key（按 QQ 存储，覆盖式）
+ * #墨安key获取     发送官网/注册/Key 获取方法说明
  * #墨安切换模式[key] 仅主人：带 Key 切换为公用模式（全员统一走公用 Key）；不带 Key 切回个人模式
  * #墨安设置公用[key] 仅主人：同切换模式（设置公用 Key）
  * #禁用链接解析     仅主人：关闭抽卡链接自动解析（本插件优先级高，避免抢占其他插件）
@@ -19,6 +20,7 @@ export class matSet extends plugin {
       priority: 500,
       rule: [
         { reg: /^#?墨安绑定\s*\S+/i, fnc: 'bindKey' },
+        { reg: /^#?墨安key获取$/i, fnc: 'keyHelp' },
         { reg: /^#?墨安切换模式(?:\s*\S+)?$/i, fnc: 'switchMode' },
         { reg: /^#?墨安设置公用\s*\S+/i, fnc: 'setCommonKey' },
         { reg: /^#?禁用链接解析$/i, fnc: 'disableLinkParse' },
@@ -65,6 +67,24 @@ export class matSet extends plugin {
       ` Key ${key.slice(0, 6)}...${key.slice(-4)}\n` +
       '━━━━━━━━━━━━━━━━\n\n' +
       '公用模式已开启：所有用户（含已绑定个人 Key 的用户）导入/导出/链接解析统一走公用 Key'
+    )
+    return true
+  }
+
+  /** 官网/注册/Key 获取方法说明（所有用户） */
+  async keyHelp() {
+    this.reply(
+      '📖 墨安 Key 获取方法\n' +
+      '━━━━━━━━━━━━━━━━\n' +
+      '🌐 官网: http://111.170.175.22:5213\n' +
+      '📝 注册: 打开官网 /register 页面注册账号\n' +
+      '　 需注册码: 加入Q群 872488071 发送“#注册码获取”\n' +
+      '🔑 生成Key: 注册登录后进入控制台（官网右上角登录）\n' +
+      '　 在“API Key”处生成，最多5个，支持IP白名单\n' +
+      '🤖 绑定: 拿到 Key 后发送 #墨安绑定[key]\n' +
+      '　 示例: #墨安绑定mo-123456786\n' +
+      '━━━━━━━━━━━━━━━━\n' +
+      '绑定后即可使用 #导出[uid]记录 / #导入[uid]记录 / 抽卡链接自动导入'
     )
     return true
   }

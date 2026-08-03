@@ -69,6 +69,11 @@ export const helpList = [
         desc: '绑定自己的 Key，如 #墨安绑定mo-123456786',
       },
       {
+        icon: 76,
+        title: '#墨安key获取',
+        desc: '官网/注册/Key 获取方法说明',
+      },
+      {
         icon: 63,
         title: '两种模式',
         desc: '① 各自绑定 ② 公用模式全员统一走公用 Key',
