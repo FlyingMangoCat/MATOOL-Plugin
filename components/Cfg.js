@@ -53,23 +53,43 @@ class Cfg {
   }
 
   /**
-   * 取指定 QQ 绑定的 Key
-   * 主人（isMaster）额外兼容旧字符串格式/master 归属的 Key
+   * 取指定 QQ 的可用 Key（优先级：用户自己绑定 > 主人设置的公用 Key > master 旧 key）
+   * 公用 Key 模式下所有用户均可用导入/导出/链接解析
    */
   getKeyByQq(qq, isMaster = false) {
     const keys = this.get('KEY.MOANKEY.keys')
-    if (!Array.isArray(keys) || keys.length === 0) return ''
-    qq = String(qq)
-    for (const k of keys) {
-      if (k && typeof k === 'object' && String(k.qq) === qq && k.key) return k.key
+    if (Array.isArray(keys) && keys.length > 0) {
+      qq = String(qq)
+      for (const k of keys) {
+        if (k && typeof k === 'object' && String(k.qq) === qq && k.key) return k.key
+      }
     }
-    if (isMaster) {
+    // 公用 Key（主人设置）：所有人可用
+    const common = this.getCommonKey()
+    if (common) return common
+    // 旧数据兼容：master 归属 key 仅主人可用
+    if (isMaster && Array.isArray(keys)) {
       for (const k of keys) {
         if (k && typeof k === 'object' && String(k.qq) === 'master' && k.key) return k.key
         if (typeof k === 'string') return k // 旧格式兜底
       }
     }
     return ''
+  }
+
+  /** 公用 Key（主人设置，所有用户导入/导出/链接解析共用） */
+  getCommonKey() {
+    const v = this.get('KEY.MOANKEY.common_key')
+    return typeof v === 'string' && v ? v : ''
+  }
+
+  setCommonKey(key) {
+    const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
+    if (typeof this._data['KEY']['MOANKEY'] !== 'object' || this._data['KEY']['MOANKEY'] === null) {
+      this._data['KEY']['MOANKEY'] = {}
+    }
+    this._data['KEY']['MOANKEY']['common_key'] = key
+    this._writeYaml(filePath, this._data['KEY']['MOANKEY'])
   }
 
   /** 按 QQ 保存 Key（同一 QQ 重复绑定会覆盖旧 Key，不影响其他用户） */

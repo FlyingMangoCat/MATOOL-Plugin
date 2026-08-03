@@ -68,11 +68,21 @@ export const helpList = [
         title: '#墨安绑定[key]',
         desc: '绑定自己的 Key，如 #墨安绑定mo-123456786',
       },
+      {
+        icon: 63,
+        title: '两种模式',
+        desc: '① 各自绑定 ② 主人设公用 Key 全员可用',
+      },
     ],
   },
   {
     group: '主人设置',
     list: [
+      {
+        icon: 58,
+        title: '#墨安设置公用[key]',
+        desc: '设置公用 Key，全员可用导入/导出/链接解析',
+      },
       {
         icon: 254,
         title: '#禁用链接解析',
