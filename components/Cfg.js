@@ -87,6 +87,9 @@ class Cfg {
 
   setCommonKey(key) {
     const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
+    if (typeof this._data['KEY'] !== 'object' || this._data['KEY'] === null) {
+      this._data['KEY'] = {}
+    }
     if (typeof this._data['KEY']['MOANKEY'] !== 'object' || this._data['KEY']['MOANKEY'] === null) {
       this._data['KEY']['MOANKEY'] = {}
     }
@@ -97,6 +100,9 @@ class Cfg {
   /** 清除公用 Key：切换回个人模式（仅主人操作） */
   clearCommonKey() {
     const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
+    if (typeof this._data['KEY'] !== 'object' || this._data['KEY'] === null) {
+      this._data['KEY'] = {}
+    }
     if (typeof this._data['KEY']['MOANKEY'] !== 'object' || this._data['KEY']['MOANKEY'] === null) {
       this._data['KEY']['MOANKEY'] = {}
     }
@@ -107,6 +113,9 @@ class Cfg {
   /** 按 QQ 保存 Key（同一 QQ 重复绑定会覆盖旧 Key，不影响其他用户） */
   saveApiKey(key, qq) {
     const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
+    if (typeof this._data['KEY'] !== 'object' || this._data['KEY'] === null) {
+      this._data['KEY'] = {}
+    }
     let keys = this.get('KEY.MOANKEY.keys')
     if (!Array.isArray(keys)) keys = []
     // 旧字符串 key 迁移为 master 归属，避免丢失

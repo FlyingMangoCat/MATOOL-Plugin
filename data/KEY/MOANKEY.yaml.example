@@ -1,0 +1,14 @@
+# MATOOL-Plugin Key 配置文件示例
+# 复制为 MOANKEY.yaml 使用；或直接发送 #墨安绑定[key] 会自动创建本文件
+
+# 个人绑定模式：每个 QQ 用户绑定自己的 Key
+# 格式: keys: [{ qq: "QQ号", key: "mo_xxx" }, ...]
+keys:
+  - qq: "123456789"
+    key: mo_example_key_xxxxxxxx
+
+# 公用模式：主人发送 #墨安设置公用[key] 后自动写入，全员统一走公用 Key
+# common_key: mo_example_common_key
+
+# 链接自动解析开关（默认启用；主人可用 #禁用链接解析 / #启用链接解析 切换）
+# link_parse_enabled: true
