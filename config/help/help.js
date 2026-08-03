@@ -41,12 +41,12 @@ export const helpList = [
       {
         icon: 84,
         title: '#导出[uid]记录',
-        desc: '导出 UIGF JSON（需绑定 Key）',
+        desc: '导出 UIGF v4.2 JSON（需绑定 Key）',
       },
       {
         icon: 85,
         title: '#导入[uid]记录',
-        desc: '导入抽卡记录（需绑定 Key）',
+        desc: '导入 UIGF v2.2 / v4.2（需绑定 Key）',
       },
       {
         icon: 73,

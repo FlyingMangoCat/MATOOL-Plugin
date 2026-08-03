@@ -243,6 +243,12 @@ export class matRecords extends plugin {
     let records
     try {
       const j = JSON.parse(text)
+      // UIGF 版本校验：墨安程序导入支持 v2.x（扁平 list）与 v4.x（分区格式）
+      const uigfVer = j?.info?.version
+      if (uigfVer && !/^v[24]\.\d+$/.test(uigfVer)) {
+        this.reply('❌ 不支持的 UIGF 版本: ' + uigfVer + '\n墨安程序导入仅支持 UIGF v2.2 / v4.2')
+        return 'return'
+      }
       // UIGF v4.2 格式：{ hk4e: [{ uid: '...', list: [...] }] }
       const gameMap = { hk4e_cn: 'hk4e', hkrpg_cn: 'hkrpg', nap_cn: 'nap' }
       const uigfKey = gameMap[gameBiz]
@@ -256,8 +262,8 @@ export class matRecords extends plugin {
             break
           }
         }
-      } else if (j.info && Array.isArray(j.list) && j.list.length > 0) {
-        // UIGF v2.x 格式：{ info: {...}, list: [...] }
+      } else if (Array.isArray(j.list) && j.list.length > 0) {
+        // UIGF v2.x 扁平格式：{ info: {...}, list: [...] }（与墨安程序一致，有无 info 均可）
         records = j.list
       } else {
         // 旧格式：{ records: { hk4e_cn: [...] } } 或直接数组
