@@ -12,7 +12,8 @@
  *   accept 无状态时返回 false，正常流程不受影响。
  */
 import plugin from '../../../lib/plugins/plugin.js'
-import { exportGacha, importGachaJSON, importGacha, verifyLink, symbolToGameBiz, gameBizToName } from './api.js'
+import { exportGacha, importGachaJSON, verifyLink, symbolToGameBiz, gameBizToName } from './api.js'
+import { Cfg } from '../components/index.js'
 import fs from 'fs'
 import path from 'path'
 
@@ -55,6 +56,11 @@ export class matRecords extends plugin {
   // ═══════════════ 导出 ═══════════════
 
   async exportCmd() {
+    const key = Cfg.getKeyByQq(this.e.user_id, this.e.isMaster)
+    if (!key) {
+      this.reply('❌ 未绑定 Key，无法导出\n\n请先发送 #墨安绑定[key] 绑定，示例: #墨安绑定mo-123456786')
+      return true
+    }
     const uid = this._uid()
     const gameBiz = this._gameBiz()
     const gameName = gameBizToName(gameBiz)
@@ -67,6 +73,11 @@ export class matRecords extends plugin {
   // ═══════════════ 导入 ═══════════════
 
   async importStart() {
+    const key = Cfg.getKeyByQq(this.e.user_id, this.e.isMaster)
+    if (!key) {
+      this.reply('❌ 未绑定 Key，无法导入\n\n请先发送 #墨安绑定[key] 绑定，示例: #墨安绑定mo-123456786')
+      return true
+    }
     const uid = this._uid()
     const gameBiz = this._gameBiz()
     const gameName = gameBizToName(gameBiz)
@@ -93,7 +104,7 @@ export class matRecords extends plugin {
     if (!url) { stDel(this.e.user_id); this.reply('⏰ 未检测到抽卡链接，已取消'); return 'return' }
 
     this.reply('⏳ 正在验证...')
-    const r = await verifyLink(url)
+    const r = await verifyLink(url, this.e.user_id, this.e.isMaster)
     if (r.code !== 0) { stDel(this.e.user_id); this.reply('❌ ' + (r.message || '链接无效')); return 'return' }
 
     const vu = r.data?.uid ? String(r.data.uid) : ''
@@ -113,8 +124,7 @@ export class matRecords extends plugin {
       // 使用验证后服务器返回的 game_biz（自动检测），而不是命令输入的默认值
       const actualBiz = vb
       const actualName = gameBizToName(actualBiz)
-      return await this._doExport(state.uid, actualBiz, actualName)
-    } else {
+      return await this._doExport(state.uid, actualBiz, actualName)    } else {
       // 导入：进入等待 JSON 阶段
       const actualName = gameBizToName(vb)
       stSet(this.e.user_id, { step: 'json', mode: 'import', uid: state.uid, gameBiz: vb, gameName: actualName })
@@ -195,7 +205,7 @@ export class matRecords extends plugin {
   }
 
   async _doExport(uid, gameBiz, gameName) {
-    const r = await exportGacha(uid, gameBiz)
+    const r = await exportGacha(uid, gameBiz, this.e.user_id, this.e.isMaster)
     if (r.code !== 0) {
       this.reply('❌ 导出失败：' + (r.message || '未知错误'))
       return 'return'
@@ -268,11 +278,11 @@ export class matRecords extends plugin {
     }
 
     this.reply('⏳ ' + records.length + '条，正在导入...')
-    const r = await importGachaJSON(uid, gameBiz, records)
+    const r = await importGachaJSON(uid, gameBiz, records, this.e.user_id, this.e.isMaster)
     if (r.code !== 0) { this.reply('❌ 导入失败：' + (r.message || '未知错误')); return 'return' }
 
     const sym = gameBiz === 'hk4e_cn' ? '#' : gameBiz === 'hkrpg_cn' ? '*' : '%'
-    this.reply('✅ 导入成功 ' + gameName + ' UID:' + uid + ' (' + records.length + '条)\n查看 ' + sym + '总结' + uid)
+    this.reply('✅ 导入成功 ' + gameName + ' UID:' + uid + ' (' + records.length + '条)\n查看 ' + sym + '分析' + uid)
     return 'return'
   }
 

@@ -1,9 +1,12 @@
 /**
- * MATOOL-Plugin - 设置指令（仅主人可用）
+ * MATOOL-Plugin - 设置指令
+ *
+ * #墨安绑定[key]   所有用户绑定自己的 Key（按 QQ 存储，覆盖式）
+ * #禁用链接解析     仅主人：关闭抽卡链接自动解析（本插件优先级高，避免抢占其他插件）
+ * #启用链接解析     仅主人：重新开启抽卡链接自动解析
  */
 import plugin from '../../../lib/plugins/plugin.js'
 import { Cfg } from '../components/index.js'
-import { getApiBase, getUserInfo } from './api.js'
 
 export class matSet extends plugin {
   constructor() {
@@ -14,76 +17,51 @@ export class matSet extends plugin {
       priority: 500,
       rule: [
         { reg: /^#?墨安绑定\s*\S+/i, fnc: 'bindKey' },
-        { reg: /^#?墨安绑定\s*$/i, fnc: 'bindKey' },
-        { reg: /^#?墨安信息$/i, fnc: 'userInfo' },
-        { reg: /^#?墨安解绑$/i, fnc: 'unbindKey' },
-        { reg: /^#?墨安设置\s+/i, fnc: 'setDefault' },
+        { reg: /^#?禁用链接解析$/i, fnc: 'disableLinkParse' },
+        { reg: /^#?启用链接解析$/i, fnc: 'enableLinkParse' },
       ],
     })
   }
 
+  /** 绑定 Key：所有用户可用，按 QQ 存入 data/KEY/MOANKEY.yaml */
   async bindKey() {
-    if (!this.e.isMaster) {
-      this.reply('暂无权限，只有主人才能操作')
+    const qq = String(this.e.user_id)
+    const key = this.e.msg.replace(/^#?墨安绑定\s*/i, '').trim()
+    if (!key || key.length < 6) {
+      this.reply('❌ 请提供正确的 Key，格式: #墨安绑定[key]\n示例: #墨安绑定mo-123456786')
       return true
     }
-    const qq = this.e.user_id
-    const msg = this.e.msg.replace(/^#?墨安绑定\s*/i, '').trim()
-    if (!msg || msg.length < 10) {
-      this.reply('请提供正确的 API Key，格式: #墨安绑定 [你的api_key]')
-      return
-    }
-    Cfg.saveApiKey(msg, String(qq))
-    this.reply('✅ API Key 绑定成功！使用 #墨安信息 查看详情')
+    Cfg.saveApiKey(key, qq)
+    this.reply(
+      '✅ Key 绑定成功！\n' +
+      '━━━━━━━━━━━━━━━━\n' +
+      ` QQ  ${qq}\n` +
+      ` Key ${key.slice(0, 6)}...${key.slice(-4)}\n` +
+      '━━━━━━━━━━━━━━━━\n\n' +
+      '现在可以使用 #导出[uid]记录 / #导入[uid]记录 / 发送抽卡链接自动导入啦'
+    )
+    return true
   }
 
-  async userInfo() {
+  /** 禁用链接解析（仅主人） */
+  async disableLinkParse() {
     if (!this.e.isMaster) {
       this.reply('暂无权限，只有主人才能操作')
       return true
     }
-    const apiKey = Cfg.getFirstApiKey()
-    if (!apiKey) {
-      this.reply('还没有绑定 API Key，使用 #墨安绑定 [api_key] 进行绑定')
-      return false
-    }
-    try {
-      const info = await getUserInfo(apiKey, getApiBase())
-      const statusMap = { active: '✅ 正常', banned: '❌ 封禁', blacklisted: '⚠️ 黑名单' }
-      const remaining = info.remaining === -1 ? '无限制' : `${info.remaining} 次`
-      this.reply([
-        `📋 墨安助手账号信息`,
-        `━━━━━━━━━━━━━━━━`,
-        `状态: ${statusMap[info.status] || info.status}`,
-        `API Key: ${info.api_key.substring(0, 8)}...${info.api_key.slice(-4)}`,
-        `QQ: ${info.qq || '未设置'}`,
-        `总请求上限: ${info.req_limit || '无限制'}`,
-        `已使用: ${info.req_count} 次`,
-        `剩余: ${remaining}`,
-        `每分钟: ${info.max_per_minute} 次`,
-        `每小时间: ${info.max_per_hour} 次`,
-        info.expire_at ? `过期时间: ${info.expire_at}` : '',
-        `━━━━━━━━━━━━━━━━`,
-      ].filter(Boolean).join('\n'))
-    } catch (e) {
-      this.reply(`❌ 查询失败: ${e.message}`)
-    }
+    Cfg.setLinkParseEnabled(false)
+    this.reply('✅ 已禁用抽卡链接自动解析，其他插件可正常接管链接')
+    return true
   }
 
-  async unbindKey() {
+  /** 启用链接解析（仅主人） */
+  async enableLinkParse() {
     if (!this.e.isMaster) {
       this.reply('暂无权限，只有主人才能操作')
       return true
     }
-    Cfg.saveApiKey('', '')
-    this.reply('已清除 API Key')
-  }
-
-  async setDefault() {
-    if (!this.e.isMaster) {
-      this.reply('暂无权限，只有主人才能操作')
-      return true
-    }
-    this.reply('使用 #总结 [uid] 直接查，无需设置默认')
+    Cfg.setLinkParseEnabled(true)
+    this.reply('✅ 已启用抽卡链接自动解析，发送抽卡链接将自动导入')
+    return true
   }
 }

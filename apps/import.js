@@ -20,6 +20,7 @@
  */
 import plugin from '../../../lib/plugins/plugin.js'
 import { importGacha } from './api.js'
+import { Cfg } from '../components/index.js'
 import { stGet, stDel, stSet } from './records.js'
 
 // Gacha URL 正则：包含 authkey 的米游社/HoYoLAB 链接
@@ -43,6 +44,9 @@ export class GachaImport extends plugin {
 
   /** Auto-detect gacha URLs in user messages */
   async importUrl() {
+    // 主人禁用链接解析时不接管（避免抢占其他插件）
+    if (!Cfg.getLinkParseEnabled()) return false
+
     // ── detect gacha URL ──
     const msg = this.e.msg
     const match = msg.match(GACHA_URL_RE)
@@ -62,7 +66,7 @@ export class GachaImport extends plugin {
     // ── process ──
     this.reply('⏳ 正在解析抽卡链接，请稍候...')
 
-    const result = await importGacha(gachaUrl)
+    const result = await importGacha(gachaUrl, this.e.user_id, this.e.isMaster)
 
     if (result.code === 0 && result.data?.imported > 0) {
       const data = result.data
@@ -75,7 +79,6 @@ export class GachaImport extends plugin {
         ` 游戏  ${gameName}\n` +
         ` 记录  ${data.imported} 条\n` +
         `━━━━━━━━━━━━━━━━\n\n` +
-        `查看统计： ${gameSym}总结${data.uid}\n` +
         `查看分析： ${gameSym}分析${data.uid}`
       )
     } else if (result.code === 0 && (!result.data || result.data.imported === 0)) {
@@ -87,7 +90,7 @@ export class GachaImport extends plugin {
         `2. 服务器网络状况`
       )
     } else if (result.code === 401) {
-      this.reply(`❌ 未绑定 API Key\n请使用 #墨安绑定 mo_xxx 绑定后再试`)
+      this.reply(`❌ 未绑定 Key\n请使用 #墨安绑定[key] 绑定（示例: #墨安绑定mo-123456786）后再试`)
     } else if (result.code === 402) {
       this.reply(`❌ 抽卡链接无效\n原因：${result.message}`)
     } else if (result.code === 500) {

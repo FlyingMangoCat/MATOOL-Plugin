@@ -7,8 +7,8 @@ export function getApiBase() {
   return Cfg.getApiBase()
 }
 
-function getAuthKey() {
-  return Cfg.getFirstApiKey()
+function getAuthKey(qq, isMaster = false) {
+  return Cfg.getKeyByQq(qq, isMaster)
 }
 
 export const GAME_MAP = {
@@ -58,28 +58,24 @@ export async function queryGacha(uid, game) {
   return apiGet(`${base}/query?uid=${encodeURIComponent(uid)}&game=${encodeURIComponent(game)}`)
 }
 
-export async function fetchWithKey(uid, game) {
+export async function fetchWithKey(uid, game, qq, isMaster = false) {
   const base = getApiBase()
-  const apiKey = getAuthKey()
-  if (!apiKey) throw new Error('未绑定 API Key')
+  const apiKey = getAuthKey(qq, isMaster)
+  if (!apiKey) throw new Error('未绑定 Key')
   return apiGet(`${base}/fetch?uid=${encodeURIComponent(uid)}&game=${encodeURIComponent(game)}&api_key=${encodeURIComponent(apiKey)}`)
-}
-
-export async function getUserInfo(apiKey) {
-  const base = getApiBase()
-  return apiGet(`${base}/userinfo?api_key=${encodeURIComponent(apiKey)}`)
 }
 
 /**
  * Import gacha records via URL - sends URL to server's /api/gacha/import-link endpoint.
  *
  * @param {string} gachaUrl - The full gacha URL (hoyolab/mihoyo authkey URL)
- * @returns {{ code: number, message: string, data?: { game: string, uid: string, imported: number } }}
+ * @param {string|number} qq - 发送者 QQ（用于取该用户绑定的 Key）
+ * @param {boolean} isMaster - 是否主人（兼容 master 归属 Key）
  */
-export async function importGacha(gachaUrl) {
-  const apiKey = getAuthKey()
+export async function importGacha(gachaUrl, qq, isMaster = false) {
+  const apiKey = getAuthKey(qq, isMaster)
   if (!apiKey) {
-    return { code: 401, message: '未绑定 API Key，请使用 #墨安绑定 绑定' }
+    return { code: 401, message: '未绑定 Key，请使用 #墨安绑定[key] 绑定' }
   }
 
   const base = getApiBase()
@@ -130,10 +126,10 @@ export async function importGacha(gachaUrl) {
  * @param {string} link - Authkey URL
  * @returns {{ code: number, message: string, data?: { uid: string, game_biz: string } }}
  */
-export async function verifyLink(link) {
-  const apiKey = getAuthKey()
+export async function verifyLink(link, qq, isMaster = false) {
+  const apiKey = getAuthKey(qq, isMaster)
   if (!apiKey) {
-    return { code: 401, message: '未绑定 API Key，请使用 #墨安绑定 绑定' }
+    return { code: 401, message: '未绑定 Key，请使用 #墨安绑定[key] 绑定' }
   }
 
   const base = getApiBase()
@@ -170,10 +166,10 @@ export async function verifyLink(link) {
  * @param {string} gameBiz - Game biz code (hk4e_cn/hkrpg_cn/nap_cn) or empty for all
  * @returns {{ code: number, message: string, data?: object }}
  */
-export async function exportGacha(uid, gameBiz) {
-  const apiKey = getAuthKey()
+export async function exportGacha(uid, gameBiz, qq, isMaster = false) {
+  const apiKey = getAuthKey(qq, isMaster)
   if (!apiKey) {
-    return { code: 401, message: '未绑定 API Key，请使用 #墨安绑定 绑定' }
+    return { code: 401, message: '未绑定 Key，请使用 #墨安绑定[key] 绑定' }
   }
 
   const base = getApiBase()
@@ -208,10 +204,10 @@ export async function exportGacha(uid, gameBiz) {
  * @param {Array} records - Array of gacha record objects
  * @returns {{ code: number, message: string, data?: object }}
  */
-export async function importGachaJSON(uid, gameBiz, records) {
-  const apiKey = getAuthKey()
+export async function importGachaJSON(uid, gameBiz, records, qq, isMaster = false) {
+  const apiKey = getAuthKey(qq, isMaster)
   if (!apiKey) {
-    return { code: 401, message: '未绑定 API Key，请使用 #墨安绑定 绑定' }
+    return { code: 401, message: '未绑定 Key，请使用 #墨安绑定[key] 绑定' }
   }
 
   const base = getApiBase()

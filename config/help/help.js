@@ -11,82 +11,77 @@ export const helpCfg = {
 
 export const helpList = [
   {
-    group: '抽卡查询',
+    group: '抽卡分析',
     list: [
-      {
-        icon: 62,
-        title: '#总结[uid]',
-        desc: '查看原神抽卡总结图片',
-      },
       {
         icon: 67,
         title: '#分析[uid]',
-        desc: '深度分析原神抽卡',
+        desc: '原神抽卡分析图（无需 Key）',
       },
       {
-        icon: 77,
-        title: '#五星[uid]',
-        desc: '原神五星出货列表',
+        icon: 67,
+        title: '*分析[uid]',
+        desc: '星铁抽卡分析图（无需 Key）',
+      },
+      {
+        icon: 67,
+        title: '%分析[uid]',
+        desc: '绝区零抽卡分析图（无需 Key）',
       },
       {
         icon: 35,
         title: '#抽卡[uid]',
         desc: '文字版抽卡记录',
       },
-      {
-        icon: 38,
-        title: '*总结[uid]',
-        desc: '星铁抽卡（同样可用分析/五星/抽卡/导出/导入）',
-      },
-      {
-        icon: 41,
-        title: '%总结[uid]',
-        desc: '绝区零抽卡（同样可用分析/五星/抽卡/导出/导入）',
-      },
     ],
   },
   {
-    group: '记录管理',
+    group: '抽卡记录',
     list: [
       {
         icon: 84,
-        title: '#导出UID记录',
-        desc: '导出 UIGF v4.2 JSON 文件',
+        title: '#导出[uid]记录',
+        desc: '导出 UIGF JSON（需绑定 Key）',
       },
       {
         icon: 85,
-        title: '#导入UID记录',
-        desc: '支持 UIGF v4.2 / v2.2 / 旧格式',
+        title: '#导入[uid]记录',
+        desc: '导入抽卡记录（需绑定 Key）',
       },
       {
         icon: 73,
-        title: '链接导入',
-        desc: '发送抽卡链接自动导入到服务器',
+        title: '链接自动导入',
+        desc: '发送抽卡链接自动导入（主人可禁用）',
       },
       {
         icon: 79,
-        title: '多游戏导出',
+        title: '多游戏',
         desc: '# 原神 / * 星铁 / % 绝区零',
       },
     ],
   },
   {
-    group: '账号设置（仅主人）',
+    group: 'Key 绑定',
     list: [
       {
         icon: 58,
-        title: '#墨安绑定 [key]',
-        desc: '绑定 API Key',
+        title: '#墨安绑定[key]',
+        desc: '绑定自己的 Key，如 #墨安绑定mo-123456786',
       },
+    ],
+  },
+  {
+    group: '主人设置',
+    list: [
       {
-        icon: 55,
-        title: '#墨安信息',
-        desc: '查看 Key 配额',
+        icon: 254,
+        title: '#禁用链接解析',
+        desc: '关闭链接自动解析，不抢占其他插件',
       },
       {
         icon: 254,
-        title: '#墨安解绑',
-        desc: '清除 API Key',
+        title: '#启用链接解析',
+        desc: '重新开启链接自动解析',
       },
     ],
   },
@@ -105,8 +100,8 @@ export const helpList = [
       },
       {
         icon: 84,
-        title: '游戏符号',
-        desc: '#原神 / *星铁 / %绝区零',
+        title: '#墨安版本',
+        desc: '查看插件版本',
       },
     ],
   },

@@ -52,35 +52,57 @@ class Cfg {
     return base || 'https://record.muoan.com/api'
   }
 
-  /** 取第一个 API Key（兼容字符串或对象格式）*/
-  getFirstApiKey() {
+  /**
+   * 取指定 QQ 绑定的 Key
+   * 主人（isMaster）额外兼容旧字符串格式/master 归属的 Key
+   */
+  getKeyByQq(qq, isMaster = false) {
     const keys = this.get('KEY.MOANKEY.keys')
     if (!Array.isArray(keys) || keys.length === 0) return ''
-    const first = keys[0]
-    return typeof first === 'string' ? first : (first.key || '')
+    qq = String(qq)
+    for (const k of keys) {
+      if (k && typeof k === 'object' && String(k.qq) === qq && k.key) return k.key
+    }
+    if (isMaster) {
+      for (const k of keys) {
+        if (k && typeof k === 'object' && String(k.qq) === 'master' && k.key) return k.key
+        if (typeof k === 'string') return k // 旧格式兜底
+      }
+    }
+    return ''
   }
 
-  /** 保存/清除 API Key */
-  saveApiKey(key, owner = '') {
+  /** 按 QQ 保存 Key（同一 QQ 重复绑定会覆盖旧 Key，不影响其他用户） */
+  saveApiKey(key, qq) {
     const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
     let keys = this.get('KEY.MOANKEY.keys')
     if (!Array.isArray(keys)) keys = []
+    // 旧字符串 key 迁移为 master 归属，避免丢失
+    keys = keys.map(k => (typeof k === 'string' ? { qq: 'master', key: k } : k))
+    qq = String(qq)
+    keys = keys.filter(k => k && typeof k === 'object' && String(k.qq) !== qq)
+    keys.push({ qq, key })
 
-    if (!key) {
-      // 清除所有 Key
-      keys = []
-    } else {
-      // 统一存字符串格式
-      keys = keys.filter(k => (typeof k === 'string' ? k : k.key) !== key)
-      keys.push(key)
-    }
-
-    // 确保存储结构是对象（YAML 解析异常可能导致是字符串）
     if (typeof this._data['KEY']['MOANKEY'] !== 'object' || this._data['KEY']['MOANKEY'] === null) {
       this._data['KEY']['MOANKEY'] = {}
     }
     this._data['KEY']['MOANKEY']['keys'] = keys
-    this._writeYaml(filePath, { keys })
+    this._writeYaml(filePath, this._data['KEY']['MOANKEY'])
+  }
+
+  /** 链接自动解析开关（默认启用，主人可禁用） */
+  getLinkParseEnabled() {
+    const v = this.get('KEY.MOANKEY.link_parse_enabled')
+    return v === undefined || v === null ? true : !!v
+  }
+
+  setLinkParseEnabled(on) {
+    const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
+    if (typeof this._data['KEY']['MOANKEY'] !== 'object' || this._data['KEY']['MOANKEY'] === null) {
+      this._data['KEY']['MOANKEY'] = {}
+    }
+    this._data['KEY']['MOANKEY']['link_parse_enabled'] = !!on
+    this._writeYaml(filePath, this._data['KEY']['MOANKEY'])
   }
 
   _writeYaml(filePath, data) {
