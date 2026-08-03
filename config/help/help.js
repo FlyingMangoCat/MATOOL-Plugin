@@ -81,7 +81,12 @@ export const helpList = [
       {
         icon: 58,
         title: '#墨安设置公用[key]',
-        desc: '设置公用 Key，全员可用导入/导出/链接解析',
+        desc: '设置公用 Key，开启公用模式（全员统一走公用 Key）',
+      },
+      {
+        icon: 59,
+        title: '#墨安清除公用',
+        desc: '清除公用 Key，切换回个人模式',
       },
       {
         icon: 254,

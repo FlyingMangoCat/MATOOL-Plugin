@@ -94,6 +94,16 @@ class Cfg {
     this._writeYaml(filePath, this._data['KEY']['MOANKEY'])
   }
 
+  /** 清除公用 Key：切换回个人模式（仅主人操作） */
+  clearCommonKey() {
+    const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
+    if (typeof this._data['KEY']['MOANKEY'] !== 'object' || this._data['KEY']['MOANKEY'] === null) {
+      this._data['KEY']['MOANKEY'] = {}
+    }
+    delete this._data['KEY']['MOANKEY']['common_key']
+    this._writeYaml(filePath, this._data['KEY']['MOANKEY'])
+  }
+
   /** 按 QQ 保存 Key（同一 QQ 重复绑定会覆盖旧 Key，不影响其他用户） */
   saveApiKey(key, qq) {
     const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`

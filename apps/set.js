@@ -2,7 +2,8 @@
  * MATOOL-Plugin - 设置指令
  *
  * #墨安绑定[key]   所有用户绑定自己的 Key（按 QQ 存储，覆盖式）
- * #墨安设置公用[key] 仅主人：设置公用 Key，设置后所有用户均可使用导入/导出/链接解析
+ * #墨安设置公用[key] 仅主人：设置公用 Key，开启公用模式（全员统一走公用 Key）
+ * #墨安清除公用   仅主人：清除公用 Key，切换回个人模式
  * #禁用链接解析     仅主人：关闭抽卡链接自动解析（本插件优先级高，避免抢占其他插件）
  * #启用链接解析     仅主人：重新开启抽卡链接自动解析
  */
@@ -19,6 +20,7 @@ export class matSet extends plugin {
       rule: [
         { reg: /^#?墨安绑定\s*\S+/i, fnc: 'bindKey' },
         { reg: /^#?墨安设置公用\s*\S+/i, fnc: 'setCommonKey' },
+        { reg: /^#?墨安(清除|关闭|取消)公用$/i, fnc: 'clearCommonKey' },
         { reg: /^#?禁用链接解析$/i, fnc: 'disableLinkParse' },
         { reg: /^#?启用链接解析$/i, fnc: 'enableLinkParse' },
       ],
@@ -64,6 +66,21 @@ export class matSet extends plugin {
       '━━━━━━━━━━━━━━━━\n\n' +
       '公用模式已开启：所有用户（含已绑定个人 Key 的用户）导入/导出/链接解析统一走公用 Key'
     )
+    return true
+  }
+
+  /** 清除公用 Key（仅主人）：切换回个人模式 */
+  async clearCommonKey() {
+    if (!this.e.isMaster) {
+      this.reply('暂无权限，只有主人才能操作')
+      return true
+    }
+    if (!Cfg.getCommonKey()) {
+      this.reply('当前未设置公用 Key，本就是个人模式')
+      return true
+    }
+    Cfg.clearCommonKey()
+    this.reply('✅ 已清除公用 Key，切换回个人模式\n\n现在各用户需各自 #墨安绑定[key] 才能使用导入/导出/链接解析')
     return true
   }
 
