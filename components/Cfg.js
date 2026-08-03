@@ -53,25 +53,27 @@ class Cfg {
   }
 
   /**
-   * 取指定 QQ 的可用 Key（优先级：用户自己绑定 > 主人设置的公用 Key > master 旧 key）
-   * 公用 Key 模式下所有用户均可用导入/导出/链接解析
+   * 取指定 QQ 的可用 Key
+   * 公用模式（主人设置了公用 Key）：全员统一走公用 Key
+   * 个人模式：用户自己绑定 > master 旧 key（仅主人）
    */
   getKeyByQq(qq, isMaster = false) {
+    // 公用模式：主人设置了公用 Key，所有请求统一走公用 Key
+    const common = this.getCommonKey()
+    if (common) return common
+    // 个人绑定模式
     const keys = this.get('KEY.MOANKEY.keys')
     if (Array.isArray(keys) && keys.length > 0) {
       qq = String(qq)
       for (const k of keys) {
         if (k && typeof k === 'object' && String(k.qq) === qq && k.key) return k.key
       }
-    }
-    // 公用 Key（主人设置）：所有人可用
-    const common = this.getCommonKey()
-    if (common) return common
-    // 旧数据兼容：master 归属 key 仅主人可用
-    if (isMaster && Array.isArray(keys)) {
-      for (const k of keys) {
-        if (k && typeof k === 'object' && String(k.qq) === 'master' && k.key) return k.key
-        if (typeof k === 'string') return k // 旧格式兜底
+      // 旧数据兼容：master 归属 key 仅主人可用
+      if (isMaster) {
+        for (const k of keys) {
+          if (k && typeof k === 'object' && String(k.qq) === 'master' && k.key) return k.key
+          if (typeof k === 'string') return k // 旧格式兜底
+        }
       }
     }
     return ''

@@ -71,7 +71,7 @@ export const helpList = [
       {
         icon: 63,
         title: '两种模式',
-        desc: '① 各自绑定 ② 主人设公用 Key 全员可用',
+        desc: '① 各自绑定 ② 公用模式全员统一走公用 Key',
       },
     ],
   },
