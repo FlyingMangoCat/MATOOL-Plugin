@@ -80,13 +80,13 @@ export const helpList = [
     list: [
       {
         icon: 58,
-        title: '#墨安设置公用[key]',
-        desc: '设置公用 Key，开启公用模式（全员统一走公用 Key）',
+        title: '#墨安切换模式[key]',
+        desc: '带 Key 切公用模式 / 不带 Key 切回个人模式',
       },
       {
         icon: 59,
-        title: '#墨安清除公用',
-        desc: '清除公用 Key，切换回个人模式',
+        title: '#墨安设置公用[key]',
+        desc: '同切换模式（设置公用 Key）',
       },
       {
         icon: 254,
