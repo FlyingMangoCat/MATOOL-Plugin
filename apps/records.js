@@ -92,7 +92,8 @@ export class matRecords extends plugin {
   // ═══════════════ 拉取 ═══════════════
 
   async pullCmd() {
-    const key = Cfg.getKeyByQq(this.e.user_id, this.e.isMaster)
+    // 拉取与上传同模式：个人 Key 优先，其次公用 Key
+    const { key } = Cfg.resolveUploadKey(this.e.user_id, this.e.isMaster)
     if (!key) {
       this.reply('功能需要绑定墨安助手KEY使用哦~')
       return true
@@ -101,7 +102,7 @@ export class matRecords extends plugin {
     const gameBiz = this._gameBiz()
     const gameName = gameBizToName(gameBiz)
     if (!uid) return false
-    stSet(this.e.user_id, { step: 'link', mode: 'pull', uid, gameBiz, gameName })
+    stSet(this.e.user_id, { step: 'link', mode: 'pull', uid, gameBiz, gameName, key })
     this.reply(`拉取 ${gameName} ${uid}\n请发送该账号的抽卡链接验证哦~`)
     return true
   }
@@ -123,7 +124,8 @@ export class matRecords extends plugin {
     if (!url) { stDel(this.e.user_id); this.reply('未检测到链接，已取消哦~'); return 'return' }
 
     this.reply('正在验证...')
-    const r = await verifyLink(url, this.e.user_id, this.e.isMaster)
+    // 拉取模式用状态中已解析的 Key（个人优先），其余模式按 QQ 模式解析
+    const r = await verifyLink(url, this.e.user_id, this.e.isMaster, state.key || '')
     if (r.code !== 0) {
       stDel(this.e.user_id)
       const msg = r.message || '链接无效'
@@ -157,12 +159,12 @@ export class matRecords extends plugin {
       return await this._doExport(state.uid, actualBiz, actualName)
     }
     if (state.mode === 'pull') {
-      // 拉取：验证通过后从云端拉取并写入本地 genshin/miao 目录
+      // 拉取：验证通过后从云端拉取并写入本地 genshin/miao 目录（个人 Key 优先，其次公用 Key）
       stDel(this.e.user_id)
       this.reply('✅ 验证成功！正在拉取...')
       const actualBiz = vb
       const actualName = gameBizToName(actualBiz)
-      return await this._doPull(state.uid, actualBiz, actualName)
+      return await this._doPull(state.uid, actualBiz, actualName, state.key || '')
     }
     // 导入：进入等待 JSON 阶段
     const actualName = gameBizToName(vb)
@@ -276,13 +278,13 @@ export class matRecords extends plugin {
     return 'return'
   }
 
-  async _doPull(uid, gameBiz, gameName) {
+  async _doPull(uid, gameBiz, gameName, apiKey = '') {
     // genshin/miao 本地无绝区零标准目录，暂不支持
     if (gameBiz === 'nap_cn') {
       this.reply('暂不支持绝区零拉取哦~')
       return 'return'
     }
-    const r = await exportGacha(uid, gameBiz, this.e.user_id, this.e.isMaster)
+    const r = await exportGacha(uid, gameBiz, this.e.user_id, this.e.isMaster, apiKey)
     if (r.code !== 0) {
       this.reply('拉取失败哦~')
       return 'return'

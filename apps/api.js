@@ -124,11 +124,12 @@ export async function importGacha(gachaUrl, qq, isMaster = false) {
  * POST /api/gacha/verify-link
  *
  * @param {string} link - Authkey URL
+ * @param {string} apiKey - 可选，显式指定 Key（默认按 QQ 模式解析）
  * @returns {{ code: number, message: string, data?: { uid: string, game_biz: string } }}
  */
-export async function verifyLink(link, qq, isMaster = false) {
-  const apiKey = getAuthKey(qq, isMaster)
-  if (!apiKey) {
+export async function verifyLink(link, qq, isMaster = false, apiKey = '') {
+  const key = apiKey || getAuthKey(qq, isMaster)
+  if (!key) {
     return { code: 401, message: '未绑定 Key，请使用 #墨安绑定[key] 绑定' }
   }
 
@@ -141,7 +142,7 @@ export async function verifyLink(link, qq, isMaster = false) {
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'MATOOL-Plugin/Yunzai',
-        'X-API-Key': apiKey,
+        'X-API-Key': key,
       },
       body: JSON.stringify({ link }),
     })
@@ -164,11 +165,12 @@ export async function verifyLink(link, qq, isMaster = false) {
  *
  * @param {string} uid - Game UID
  * @param {string} gameBiz - Game biz code (hk4e_cn/hkrpg_cn/nap_cn) or empty for all
+ * @param {string} apiKey - 可选，显式指定 Key（默认按 QQ 模式解析）
  * @returns {{ code: number, message: string, data?: object }}
  */
-export async function exportGacha(uid, gameBiz, qq, isMaster = false) {
-  const apiKey = getAuthKey(qq, isMaster)
-  if (!apiKey) {
+export async function exportGacha(uid, gameBiz, qq, isMaster = false, apiKey = '') {
+  const key = apiKey || getAuthKey(qq, isMaster)
+  if (!key) {
     return { code: 401, message: '未绑定 Key，请使用 #墨安绑定[key] 绑定' }
   }
 
@@ -181,7 +183,7 @@ export async function exportGacha(uid, gameBiz, qq, isMaster = false) {
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'MATOOL-Plugin/Yunzai',
-        'X-API-Key': apiKey,
+        'X-API-Key': key,
       },
       body: JSON.stringify({ uid, game_biz: gameBiz || '' }),
     })
