@@ -101,7 +101,7 @@ export const helpList = [
       {
         icon: 58,
         title: '#墨安设置公用[key]',
-        desc: '设置公用 Key（设置后自动开启公用模式）',
+        desc: '保存公用 Key（需 #墨安切换公用模式 启用）',
       },
       {
         icon: 59,

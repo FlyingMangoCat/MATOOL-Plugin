@@ -72,7 +72,7 @@ export class matSet extends plugin {
     return true
   }
 
-  /** 切换公用模式（仅主人）：启用已设置的公用 Key */
+  /** 切换公用模式（仅主人）：启用已设置的公用 Key（设置公用 Key 不会自动开启） */
   async switchCommon() {
     if (!this.e.isMaster) {
       this.reply('仅主人可用哦~')
@@ -83,6 +83,7 @@ export class matSet extends plugin {
       this.reply('未设置公用KEY哦~ 请先 #墨安设置公用[key]')
       return true
     }
+    Cfg.setCommonMode(true)
     this.reply('✅ 已切换公用模式！')
     return true
   }

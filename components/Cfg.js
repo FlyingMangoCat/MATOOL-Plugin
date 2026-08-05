@@ -54,13 +54,12 @@ class Cfg {
 
   /**
    * 取指定 QQ 的可用 Key
-   * 公用模式（主人设置了公用 Key）：全员统一走公用 Key
+   * 公用模式（主人显式开启且已设置公用 Key）：全员统一走公用 Key
    * 个人模式：用户自己绑定 > master 旧 key（仅主人）
    */
   getKeyByQq(qq, isMaster = false) {
-    // 公用模式：主人设置了公用 Key，所有请求统一走公用 Key
-    const common = this.getCommonKey()
-    if (common) return common
+    // 公用模式：主人显式开启 #墨安切换公用模式 后，所有请求统一走公用 Key
+    if (this.isCommonMode()) return this.getCommonKey()
     // 个人绑定模式
     const keys = this.get('KEY.MOANKEY.keys')
     if (Array.isArray(keys) && keys.length > 0) {
@@ -83,6 +82,25 @@ class Cfg {
   getCommonKey() {
     const v = this.get('KEY.MOANKEY.common_key')
     return typeof v === 'string' && v ? v : ''
+  }
+
+  /** 是否公用模式：主人显式开启（#墨安切换公用模式）且已设置公用 Key */
+  isCommonMode() {
+    if (!this.getCommonKey()) return false
+    return this.get('KEY.MOANKEY.mode') === 'common'
+  }
+
+  /** 显式设置模式开关：common=公用模式 / personal=个人模式 */
+  setCommonMode(on) {
+    const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
+    if (typeof this._data['KEY'] !== 'object' || this._data['KEY'] === null) {
+      this._data['KEY'] = {}
+    }
+    if (typeof this._data['KEY']['MOANKEY'] !== 'object' || this._data['KEY']['MOANKEY'] === null) {
+      this._data['KEY']['MOANKEY'] = {}
+    }
+    this._data['KEY']['MOANKEY']['mode'] = on ? 'common' : 'personal'
+    this._writeYaml(filePath, this._data['KEY']['MOANKEY'])
   }
 
   setCommonKey(key) {
@@ -130,11 +148,12 @@ class Cfg {
       }
     }
     const common = this.getCommonKey()
-    if (common) return { key: common, mode: 'common' }
+    // 公用兜底仅在公用模式开启时生效（设置公用 Key 不会自动开启）
+    if (common && this.isCommonMode()) return { key: common, mode: 'common' }
     return { key: '', mode: null }
   }
 
-  /** 清除公用 Key：切换回个人模式（仅主人操作） */
+  /** 清除公用 Key 与模式开关：切换回个人模式（仅主人操作） */
   clearCommonKey() {
     const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
     if (typeof this._data['KEY'] !== 'object' || this._data['KEY'] === null) {
@@ -144,6 +163,7 @@ class Cfg {
       this._data['KEY']['MOANKEY'] = {}
     }
     delete this._data['KEY']['MOANKEY']['common_key']
+    delete this._data['KEY']['MOANKEY']['mode']
     this._writeYaml(filePath, this._data['KEY']['MOANKEY'])
   }
 
