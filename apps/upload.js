@@ -157,8 +157,8 @@ export class matUpload extends plugin {
       return true
     }
 
-    // 收集本地全部用户/UID 记录（原神 + 星铁）
-    const jobs = []
+    // 收集本地全部记录（原神 + 星铁），同一 UID 多个目录合并去重，只算一个 UID
+    const jobsMap = new Map() // game|uid → { game, uid, records }
     for (const [game, dir] of Object.entries(GAME_DIR)) {
       const root = path.join(DATA_ROOT, dir)
       if (!fs.existsSync(root)) continue
@@ -167,10 +167,21 @@ export class matUpload extends plugin {
         if (!fs.statSync(userPath).isDirectory()) continue
         for (const uid of fs.readdirSync(userPath)) {
           const records = this._collectLocal(game, userId, uid)
-          if (records && records.length > 0) jobs.push({ game, userId, uid, records })
+          if (!records || records.length === 0) continue
+          const k = `${game}|${uid}`
+          if (!jobsMap.has(k)) jobsMap.set(k, { game, uid, records: [] })
+          const job = jobsMap.get(k)
+          const seen = new Set(job.records.map(r => String(r.id)))
+          for (const r of records) {
+            const id = String(r.id)
+            if (seen.has(id)) continue
+            seen.add(id)
+            job.records.push(r)
+          }
         }
       }
     }
+    const jobs = [...jobsMap.values()]
     if (!jobs.length) {
       this.reply('本地没有可上传的记录哦~')
       return true
