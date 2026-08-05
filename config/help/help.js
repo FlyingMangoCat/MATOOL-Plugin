@@ -1,7 +1,7 @@
 export const helpCfg = {
   themeSet: false,
   title: 'MATOOL 使用帮助',
-  subTitle: '墨安游戏助手',
+  subTitle: '基于墨安游戏助手',
   colWidth: 265,
   theme: 'all',
   themeExclude: ['default'],
