@@ -88,17 +88,17 @@ export class matSet extends plugin {
     return true
   }
 
-  /** 切换个人模式（仅主人）：清除公用 Key */
+  /** 切换个人模式（仅主人）：关闭公用模式（保留公用 Key，可随时切回） */
   async switchPersonal() {
     if (!this.e.isMaster) {
       this.reply('仅主人可用哦~')
       return true
     }
-    if (!Cfg.getCommonKey()) {
+    if (!Cfg.isCommonMode()) {
       this.reply('当前已是个人模式哦~')
       return true
     }
-    Cfg.clearCommonKey()
+    Cfg.setCommonMode(false)
     this.reply('✅ 已切换个人模式！')
     return true
   }

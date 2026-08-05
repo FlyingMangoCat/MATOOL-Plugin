@@ -58,16 +58,17 @@ export class matRecords extends plugin {
   // ═══════════════ 导出 ═══════════════
 
   async exportCmd() {
-    const key = Cfg.getKeyByQq(this.e.user_id, this.e.isMaster)
+    const { key, mode } = Cfg.resolveUploadKey(this.e.user_id, this.e.isMaster)
     if (!key) {
       this.reply('功能需要绑定墨安助手KEY使用哦~')
       return true
     }
+    if (mode === 'common') this.reply('您未绑定墨安key，本操作数据归属于公用账号KEY 如您需要归属于个人账户请发送#墨安key获取 来获取KEY绑定~')
     const uid = this._uid()
     const gameBiz = this._gameBiz()
     const gameName = gameBizToName(gameBiz)
     if (!uid) return false
-    stSet(this.e.user_id, { step: 'link', mode: 'export', uid, gameBiz, gameName })
+    stSet(this.e.user_id, { step: 'link', mode: 'export', uid, gameBiz, gameName, key })
     this.reply(`导出 ${gameName} ${uid}\n请发送该账号的抽卡链接验证哦~`)
     return true
   }
@@ -75,16 +76,17 @@ export class matRecords extends plugin {
   // ═══════════════ 导入 ═══════════════
 
   async importStart() {
-    const key = Cfg.getKeyByQq(this.e.user_id, this.e.isMaster)
+    const { key, mode } = Cfg.resolveUploadKey(this.e.user_id, this.e.isMaster)
     if (!key) {
       this.reply('功能需要绑定墨安助手KEY使用哦~')
       return true
     }
+    if (mode === 'common') this.reply('您未绑定墨安key，本操作数据归属于公用账号KEY 如您需要归属于个人账户请发送#墨安key获取 来获取KEY绑定~')
     const uid = this._uid()
     const gameBiz = this._gameBiz()
     const gameName = gameBizToName(gameBiz)
     if (!uid) return false
-    stSet(this.e.user_id, { step: 'link', mode: 'import', uid, gameBiz, gameName })
+    stSet(this.e.user_id, { step: 'link', mode: 'import', uid, gameBiz, gameName, key })
     this.reply(`导入 ${gameName} ${uid}\n请发送该账号的抽卡链接验证哦~`)
     return true
   }
@@ -92,12 +94,13 @@ export class matRecords extends plugin {
   // ═══════════════ 拉取 ═══════════════
 
   async pullCmd() {
-    // 拉取与上传同模式：个人 Key 优先，其次公用 Key
-    const { key } = Cfg.resolveUploadKey(this.e.user_id, this.e.isMaster)
+    // 全功能统一规则：个人 Key 优先，其次公用 Key（公用模式开启时）
+    const { key, mode } = Cfg.resolveUploadKey(this.e.user_id, this.e.isMaster)
     if (!key) {
       this.reply('功能需要绑定墨安助手KEY使用哦~')
       return true
     }
+    if (mode === 'common') this.reply('您未绑定墨安key，本操作数据归属于公用账号KEY 如您需要归属于个人账户请发送#墨安key获取 来获取KEY绑定~')
     const uid = this._uid()
     const gameBiz = this._gameBiz()
     const gameName = gameBizToName(gameBiz)

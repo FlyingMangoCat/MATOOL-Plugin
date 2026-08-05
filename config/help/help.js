@@ -111,7 +111,7 @@ export const helpList = [
       {
         icon: 59,
         title: '#墨安切换个人模式',
-        desc: '切回个人模式（清除公用 Key）',
+        desc: '关闭公用模式（保留公用 Key）',
       },
       {
         icon: 254,

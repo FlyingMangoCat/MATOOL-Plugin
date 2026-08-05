@@ -108,12 +108,13 @@ export class matUpload extends plugin {
       return true
     }
 
-    // 1. 解析 Key 归属（个人 Key 优先，其次公用 Key）
-    const { key } = Cfg.resolveUploadKey(this.e.user_id, this.e.isMaster)
+    // 1. 解析 Key 归属（全功能统一：个人 Key 优先，其次公用 Key）
+    const { key, mode } = Cfg.resolveUploadKey(this.e.user_id, this.e.isMaster)
     if (!key) {
       this.reply('功能需要绑定墨安助手KEY使用哦~')
       return true
     }
+    if (mode === 'common') this.reply('您未绑定墨安key，本操作数据归属于公用账号KEY 如您需要归属于个人账户请发送#墨安key获取 来获取KEY绑定~')
 
     const gameName = GAME_NAME[game]
     // 2. 校验本地记录归属
@@ -151,8 +152,8 @@ export class matUpload extends plugin {
       return true
     }
     const commonKey = Cfg.getCommonKey()
-    if (!commonKey) {
-      this.reply('未设置公用KEY哦~ 请先 #墨安设置公用[key]')
+    if (!commonKey || !Cfg.isCommonMode()) {
+      this.reply('未开启公用模式哦~ 请先 #墨安设置公用[key] 再 #墨安切换公用模式')
       return true
     }
 

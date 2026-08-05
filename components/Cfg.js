@@ -53,29 +53,12 @@ class Cfg {
   }
 
   /**
-   * 取指定 QQ 的可用 Key
-   * 公用模式（主人显式开启且已设置公用 Key）：全员统一走公用 Key
-   * 个人模式：用户自己绑定 > master 旧 key（仅主人）
+   * 取指定 QQ 的可用 Key（全功能统一规则：个人 Key 优先 → 公用 Key 兜底）
+   * 公用模式（主人显式开启且已设置公用 Key）：绑定个人 Key 用个人 Key，未绑定用公用 Key
+   * 个人模式：仅个人绑定 Key（> master 旧 key 仅主人）
    */
   getKeyByQq(qq, isMaster = false) {
-    // 公用模式：主人显式开启 #墨安切换公用模式 后，所有请求统一走公用 Key
-    if (this.isCommonMode()) return this.getCommonKey()
-    // 个人绑定模式
-    const keys = this.get('KEY.MOANKEY.keys')
-    if (Array.isArray(keys) && keys.length > 0) {
-      qq = String(qq)
-      for (const k of keys) {
-        if (k && typeof k === 'object' && String(k.qq) === qq && k.key) return k.key
-      }
-      // 旧数据兼容：master 归属 key 仅主人可用
-      if (isMaster) {
-        for (const k of keys) {
-          if (k && typeof k === 'object' && String(k.qq) === 'master' && k.key) return k.key
-          if (typeof k === 'string') return k // 旧格式兜底
-        }
-      }
-    }
-    return ''
+    return this.resolveUploadKey(qq, isMaster).key
   }
 
   /** 公用 Key（主人设置，所有用户导入/导出/链接解析共用） */
@@ -151,20 +134,6 @@ class Cfg {
     // 公用兜底仅在公用模式开启时生效（设置公用 Key 不会自动开启）
     if (common && this.isCommonMode()) return { key: common, mode: 'common' }
     return { key: '', mode: null }
-  }
-
-  /** 清除公用 Key 与模式开关：切换回个人模式（仅主人操作） */
-  clearCommonKey() {
-    const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
-    if (typeof this._data['KEY'] !== 'object' || this._data['KEY'] === null) {
-      this._data['KEY'] = {}
-    }
-    if (typeof this._data['KEY']['MOANKEY'] !== 'object' || this._data['KEY']['MOANKEY'] === null) {
-      this._data['KEY']['MOANKEY'] = {}
-    }
-    delete this._data['KEY']['MOANKEY']['common_key']
-    delete this._data['KEY']['MOANKEY']['mode']
-    this._writeYaml(filePath, this._data['KEY']['MOANKEY'])
   }
 
   /** 按 QQ 保存 Key（同一 QQ 重复绑定会覆盖旧 Key，不影响其他用户） */
