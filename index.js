@@ -25,7 +25,12 @@ try {
     try {
       let name = path.basename(file, '.js')
       let mod = await import(pathToFileURL(file).href)
-      apps[name] = mod.default || mod[Object.keys(mod)[0]]
+      // 优先 default；无 default 时取 export 中的插件类（class），避免纯函数/对象被当作插件类实例化
+      let cls = mod.default
+      if (!cls) {
+        cls = Object.values(mod).find((v) => typeof v === 'function' && /^class\s/.test(v.toString()))
+      }
+      apps[name] = cls
       success++
     } catch (err) {
       if (err?.code !== 'ERR_MODULE_NOT_FOUND') {
