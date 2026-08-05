@@ -151,9 +151,9 @@ export class matUpload extends plugin {
       this.reply('仅主人可用哦~')
       return true
     }
-    const { key } = Cfg.resolveUploadKey(this.e.user_id, true)
-    if (!key) {
-      this.reply('请先绑定墨安KEY哦~ 发送 #墨安绑定[key] 获取KEY绑定')
+    const commonKey = Cfg.getCommonKey()
+    if (!commonKey) {
+      this.reply('请先设置公用KEY哦~ 发送 #墨安设置公用[key]')
       return true
     }
 
@@ -181,7 +181,7 @@ export class matUpload extends plugin {
 
     const ok = [], fail = []
     for (const j of jobs) {
-      const r = await uploadGachaJSON(j.uid, GAME_BIZ[j.game], j.records, key)
+      const r = await uploadGachaJSON(j.uid, GAME_BIZ[j.game], j.records, commonKey)
       if (r.code === 0) ok.push({ ...j, imported: r.data?.imported ?? j.records.length })
       else fail.push({ ...j, reason: r.message || '未知错误' })
     }
