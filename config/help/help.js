@@ -36,12 +36,12 @@ export const helpList = [
     ],
   },
   {
-    group: '抽卡记录',
+    group: '云端记录',
     list: [
       {
         icon: 84,
         title: '#导出[uid]记录',
-        desc: '导出 UIGF v4.2 JSON，命令后加 v22 可导出 v2.2（需绑定 Key）',
+        desc: '导出 UIGF v4.2 JSON，加 v22 可导出 v2.2（需绑定 Key）',
       },
       {
         icon: 85,
@@ -55,13 +55,8 @@ export const helpList = [
       },
       {
         icon: 85,
-        title: '#上传[uid]云端',
-        desc: '上传本地记录到云端（个人 Key 优先）',
-      },
-      {
-        icon: 84,
-        title: '#全部记录上传云端',
-        desc: '全部原神+星铁本地记录上传公用账号（仅主人）',
+        title: '#[uid]记录上传云端',
+        desc: '上传本地记录到云端，如 #128814012记录上传云端（个人 Key 优先）',
       },
       {
         icon: 73,
@@ -91,7 +86,7 @@ export const helpList = [
       {
         icon: 63,
         title: '两种模式',
-        desc: '① 各自绑定 ② 公用模式（上传云端个人 Key 优先）',
+        desc: '个人 Key 优先；公用模式供未绑定用户使用',
       },
     ],
   },
@@ -112,6 +107,11 @@ export const helpList = [
         icon: 59,
         title: '#墨安切换个人模式',
         desc: '关闭公用模式（保留公用 Key）',
+      },
+      {
+        icon: 84,
+        title: '#全部记录上传云端',
+        desc: '全部原神+星铁记录上传公用账号（需公用模式开启，仅主人）',
       },
       {
         icon: 254,
