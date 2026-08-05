@@ -136,7 +136,7 @@ class Cfg {
     return { key: '', mode: null }
   }
 
-  /** 按 QQ 保存 Key（同一 QQ 重复绑定会覆盖旧 Key，不影响其他用户） */
+  /** 按 QQ 保存 Key：同一 QQ 重复绑定覆盖旧 Key；同一 Key 已被其他 QQ 绑定时，直接覆盖为新归属（Key 全局唯一，最新绑定生效） */
   saveApiKey(key, qq) {
     const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`
     if (typeof this._data['KEY'] !== 'object' || this._data['KEY'] === null) {
@@ -147,7 +147,8 @@ class Cfg {
     // 旧字符串 key 迁移为 master 归属，避免丢失
     keys = keys.map(k => (typeof k === 'string' ? { qq: 'master', key: k } : k))
     qq = String(qq)
-    keys = keys.filter(k => k && typeof k === 'object' && String(k.qq) !== qq)
+    // 移除本 QQ 旧绑定 + 其他 QQ 绑定的同一 Key（直接覆盖为新归属）
+    keys = keys.filter(k => k && typeof k === 'object' && String(k.qq) !== qq && k.key !== key)
     keys.push({ qq, key })
 
     if (typeof this._data['KEY']['MOANKEY'] !== 'object' || this._data['KEY']['MOANKEY'] === null) {
