@@ -58,7 +58,7 @@ export class matRecords extends plugin {
   async exportCmd() {
     const key = Cfg.getKeyByQq(this.e.user_id, this.e.isMaster)
     if (!key) {
-      this.reply('❌ 未绑定 Key，无法导出\n\n请先发送 #墨安绑定[key] 绑定，示例: #墨安绑定mo-123456786')
+      this.reply('❌ 未绑定 Key，无法导出\n请先 #墨安绑定[key]')
       return true
     }
     const uid = this._uid()
@@ -66,7 +66,7 @@ export class matRecords extends plugin {
     const gameName = gameBizToName(gameBiz)
     if (!uid) return false
     stSet(this.e.user_id, { step: 'link', mode: 'export', uid, gameBiz, gameName })
-    this.reply('📤 导出 ' + gameName + ' UID:' + uid + '\n\n发送该账号的抽卡链接验证身份\n⏱ 120秒有效')
+    this.reply('导出 ' + gameName + ' ' + uid + '\n请发送该账号的抽卡链接验证身份（120秒内）')
     return true
   }
 
@@ -75,7 +75,7 @@ export class matRecords extends plugin {
   async importStart() {
     const key = Cfg.getKeyByQq(this.e.user_id, this.e.isMaster)
     if (!key) {
-      this.reply('❌ 未绑定 Key，无法导入\n\n请先发送 #墨安绑定[key] 绑定，示例: #墨安绑定mo-123456786')
+      this.reply('❌ 未绑定 Key，无法导入\n请先 #墨安绑定[key]')
       return true
     }
     const uid = this._uid()
@@ -83,7 +83,7 @@ export class matRecords extends plugin {
     const gameName = gameBizToName(gameBiz)
     if (!uid) return false
     stSet(this.e.user_id, { step: 'link', mode: 'import', uid, gameBiz, gameName })
-    this.reply('📥 导入 ' + gameName + ' UID:' + uid + '\n\n发送该账号的抽卡链接验证身份\n⏱ 120秒有效')
+    this.reply('导入 ' + gameName + ' ' + uid + '\n请发送该账号的抽卡链接验证身份（120秒内）')
     return true
   }
 
@@ -101,9 +101,9 @@ export class matRecords extends plugin {
 
   async _handleLink(state) {
     const url = this.e.msg.match(GACHA_URL_RE)?.[0]
-    if (!url) { stDel(this.e.user_id); this.reply('⏰ 未检测到抽卡链接，已取消'); return 'return' }
+    if (!url) { stDel(this.e.user_id); this.reply('未检测到抽卡链接，已取消'); return 'return' }
 
-    this.reply('⏳ 正在验证...')
+    this.reply('正在验证...')
     const r = await verifyLink(url, this.e.user_id, this.e.isMaster)
     if (r.code !== 0) { stDel(this.e.user_id); this.reply('❌ ' + (r.message || '链接无效')); return 'return' }
 
@@ -113,7 +113,7 @@ export class matRecords extends plugin {
     // 检查 UID 是否匹配用户指定的 UID
     if (vu && vu !== state.uid) {
       stDel(this.e.user_id)
-      this.reply('❌ 验证失败：该链接对应 UID ' + vu + '，与指定的 ' + state.uid + ' 不符')
+      this.reply('❌ 链接对应 UID ' + vu + '，与指定的 ' + state.uid + ' 不符')
       return 'return'
     }
 
@@ -128,7 +128,7 @@ export class matRecords extends plugin {
       // 导入：进入等待 JSON 阶段
       const actualName = gameBizToName(vb)
       stSet(this.e.user_id, { step: 'json', mode: 'import', uid: state.uid, gameBiz: vb, gameName: actualName })
-      this.reply('✅ 验证成功\n\n发送 ' + actualName + ' JSON 文件继续导入')
+      this.reply('✅ 验证成功\n请发送 ' + actualName + ' JSON 文件')
       return 'return'
     }
   }
@@ -140,7 +140,7 @@ export class matRecords extends plugin {
     // 1) QQ 文件附件
     const fe = this.e.message?.find(m => m.type === 'file')
     if (fe) {
-      this.reply('⏳ 读取文件中...')
+      this.reply('正在读取文件...')
       try {
         let fileUrl = ''
         const raw = fe.file || ''
@@ -180,12 +180,12 @@ export class matRecords extends plugin {
         }
 
         if (!text) throw Error('无法获取文件内容')
-      } catch (e) { this.reply('❌ 文件读取失败：' + e.message); return 'return' }
+      } catch (e) { this.reply('❌ 文件读取失败: ' + e.message); return 'return' }
     }
 
     // 2) 下载链接
     else if (/^https?:\/\//.test(this.e.msg.trim())) {
-      this.reply('⏳ 下载中...')
+      this.reply('正在下载...')
       try {
         const resp = await globalThis.fetch(this.e.msg.trim(), {
           signal: AbortSignal.timeout(15000),
@@ -193,7 +193,7 @@ export class matRecords extends plugin {
         })
         if (!resp.ok) throw Error('HTTP ' + resp.status)
         text = await resp.text()
-      } catch (e) { this.reply('❌ 下载失败：' + e.message); return 'return' }
+      } catch (e) { this.reply('❌ 下载失败: ' + e.message); return 'return' }
     }
 
     // 3) 粘贴的 JSON
@@ -207,7 +207,7 @@ export class matRecords extends plugin {
   async _doExport(uid, gameBiz, gameName) {
     const r = await exportGacha(uid, gameBiz, this.e.user_id, this.e.isMaster)
     if (r.code !== 0) {
-      this.reply('❌ 导出失败：' + (r.message || '未知错误'))
+      this.reply('❌ 导出失败: ' + (r.message || '未知错误'))
       return 'return'
     }
 
@@ -231,9 +231,9 @@ export class matRecords extends plugin {
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
       fs.writeFileSync(fp, fc, 'utf8')
       try { this.e.reply(segment.file(fp)) } catch (_) {}
-      this.reply('✅ 导出成功 ' + gameName + ' UID:' + uid + ' (' + total + '条)')
+      this.reply('✅ 导出成功 ' + gameName + ' ' + uid + '（' + total + '条）')
     } catch (e) {
-      this.reply('❌ 导出失败：' + e.message)
+      this.reply('❌ 导出失败: ' + e.message)
     }
     return 'return'
   }
@@ -246,7 +246,7 @@ export class matRecords extends plugin {
       // UIGF 版本校验：墨安程序导入支持 v2.x（扁平 list）与 v4.x（分区格式）
       const uigfVer = j?.info?.version
       if (uigfVer && !/^v[24]\.\d+$/.test(uigfVer)) {
-        this.reply('❌ 不支持的 UIGF 版本: ' + uigfVer + '\n墨安程序导入仅支持 UIGF v2.2 / v4.2')
+        this.reply('❌ 不支持的版本 ' + uigfVer + '\n仅支持 UIGF v2.2 / v4.2')
         return 'return'
       }
       // UIGF v4.2 格式：{ hk4e: [{ uid: '...', list: [...] }] }
@@ -280,15 +280,15 @@ export class matRecords extends plugin {
     } catch (_) { this.reply('❌ JSON 格式错误'); return 'return' }
 
     if (!Array.isArray(records) || records.length === 0) {
-      this.reply('❌ 未找到有效抽卡记录'); return 'return'
+      this.reply('❌ 未找到有效记录'); return 'return'
     }
 
-    this.reply('⏳ ' + records.length + '条，正在导入...')
+    this.reply('正在导入 ' + records.length + ' 条...')
     const r = await importGachaJSON(uid, gameBiz, records, this.e.user_id, this.e.isMaster)
-    if (r.code !== 0) { this.reply('❌ 导入失败：' + (r.message || '未知错误')); return 'return' }
+    if (r.code !== 0) { this.reply('❌ 导入失败: ' + (r.message || '未知错误')); return 'return' }
 
     const sym = gameBiz === 'hk4e_cn' ? '#' : gameBiz === 'hkrpg_cn' ? '*' : '%'
-    this.reply('✅ 导入成功 ' + gameName + ' UID:' + uid + ' (' + records.length + '条)\n查看 ' + sym + '分析' + uid)
+    this.reply('✅ 导入成功 ' + gameName + ' ' + uid + '（' + records.length + '条）\n查看 ' + sym + '分析' + uid)
     return 'return'
   }
 

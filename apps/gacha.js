@@ -52,12 +52,12 @@ export class matGacha extends plugin {
   async analysis() {
     const parsed = this._parse(this.e.msg.trim())
     if (!parsed || !parsed.uid) {
-      this.reply('格式: #分析[uid] / *分析[uid] / %分析[uid]  示例: #分析128814012')
+      this.reply('格式: #分析[uid] / *分析[uid] / %分析[uid]')
       return false
     }
     const { uid, game } = parsed
     const gameName = GAME_MAP[game]?.name || '原神'
-    this.reply('正在生成 ' + gameName + ' UID:' + uid + ' 的抽卡分析图...')
+    this.reply('正在生成 ' + gameName + ' ' + uid + ' 分析图...')
 
     const base = Cfg.getApiBase()
     const url = `${base}/analysis/render?uid=${encodeURIComponent(uid)}&game=${encodeURIComponent(game)}&_t=${Date.now()}`
@@ -78,7 +78,7 @@ export class matGacha extends plugin {
       const buf = Buffer.from(await resp.arrayBuffer())
       this.reply(segment.image('base64://' + buf.toString('base64')))
     } catch (e) {
-      this.reply('❌ 分析图生成失败：' + e.message + '\n\n确认 UID 无误且该账号已有抽卡记录')
+      this.reply('❌ 生成失败: ' + e.message + '\n请确认 UID 正确且已有抽卡记录')
     }
     return true
   }
@@ -88,13 +88,13 @@ export class matGacha extends plugin {
     const msg = this.e.msg.trim()
     const parsed = this._parse(msg)
     if (!parsed || !parsed.uid) {
-      this.reply('格式: #抽卡[uid] / *抽卡[uid] / %抽卡[uid]  示例: #抽卡128814012')
+      this.reply('格式: #抽卡[uid] / *抽卡[uid] / %抽卡[uid]')
       return false
     }
     const { uid, game } = parsed
     const gameName = GAME_MAP[game]?.name || '原神'
     const apiKey = Cfg.getKeyByQq(this.e.user_id, this.e.isMaster)
-    this.reply('正在查询 ' + gameName + ' UID:' + uid + ' 的抽卡记录...')
+    this.reply('正在查询 ' + gameName + ' ' + uid + ' 抽卡记录...')
 
     const data = apiKey
       ? await fetchWithKey(uid, game, this.e.user_id, this.e.isMaster)
@@ -103,7 +103,7 @@ export class matGacha extends plugin {
     const section = GAME_MAP[game]?.uigfSection || 'hk4e'
     const groups = data[section] || []
     if (!groups.length || !groups[0].list.length) {
-      this.reply(gameName + ' UID:' + uid + ' 暂无抽卡记录')
+      this.reply(gameName + ' ' + uid + ' 暂无抽卡记录')
       return false
     }
 
@@ -114,12 +114,8 @@ export class matGacha extends plugin {
     const recent = all.slice(0, 10)
 
     const lines = [
-      gameName + ' 抽卡记录 - UID:' + uid,
-      '━━━━━━━━━━━━━━━━',
-      '总计: ' + total + ' 抽 | 五星 ' + fiveCount + ' | 四星 ' + fourCount,
-      apiKey ? '已用 Key 授权查询' : '公开查询（绑定 Key 提高限额）',
-      '数据来源: ' + Cfg.getApiBase().replace(/^https?:\/\//, '').replace(/\/api$/, ''),
-      '━━━━━━━━━━━━━━━━',
+      gameName + ' 抽卡记录 ' + uid,
+      '总 ' + total + ' 抽 | 五星 ' + fiveCount + ' | 四星 ' + fourCount,
       '最近 ' + recent.length + ' 条:',
     ]
     for (const r of recent) {
@@ -129,7 +125,7 @@ export class matGacha extends plugin {
     if (total > recent.length) {
       lines.push('... 以及 ' + (total - recent.length) + ' 条更早记录')
     }
-    lines.push('', '使用 #分析[uid] 查看分析图片')
+    lines.push('', '查看 #分析' + uid)
     this.reply(lines.join('\n'))
   }
 }

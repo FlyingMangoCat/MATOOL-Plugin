@@ -19,7 +19,7 @@ export class matUpdate extends plugin {
 
   async update() {
     if (!this.e.isMaster) {
-      this.reply('暂无权限，只有主人才能操作')
+      this.reply('暂无权限，仅主人可用')
       return true
     }
     this.e.isMaster = true

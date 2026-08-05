@@ -237,6 +237,48 @@ export async function importGachaJSON(uid, gameBiz, records, qq, isMaster = fals
 }
 
 /**
+ * Upload local gacha records to server via import-json endpoint.
+ * 与 importGachaJSON 同接口，但显式指定使用的 Key（个人 Key 优先，其次公用 Key）。
+ *
+ * @param {string} uid - Game UID
+ * @param {string} gameBiz - hk4e_cn / hkrpg_cn / nap_cn
+ * @param {Array} records - UIGF 记录数组
+ * @param {string} apiKey - 实际使用的 Key（决定数据归属账号）
+ * @returns {{ code: number, message: string, data?: object }}
+ */
+export async function uploadGachaJSON(uid, gameBiz, records, apiKey) {
+  if (!apiKey) {
+    return { code: 401, message: '未绑定 Key' }
+  }
+
+  const base = getApiBase()
+  try {
+    const url = base + '/gacha/import-json'
+    const resp = await globalThis.fetch(url, {
+      method: 'POST',
+      signal: AbortSignal.timeout(120000),
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'MATOOL-Plugin/Yunzai',
+        'X-API-Key': apiKey,
+      },
+      body: JSON.stringify({ uid, game_biz: gameBiz, records }),
+    })
+    const json = await resp.json()
+
+    if (json.code === 0 && json.data) {
+      const data = json.data
+      const imported = data.total_genshin || data.total_starrail || data.total_zzz || 0
+      return { code: 0, message: '上传成功，共 ' + imported + ' 条记录', data: { ...data, imported } }
+    }
+    return { code: json.code || 500, message: json.message || '上传失败' }
+  } catch (e) {
+    return { code: 408, message: '网络请求超时：' + e.message }
+  }
+}
+
+
+/**
  * Normalize game symbol to gameBiz code.
  * @param {string} symbol - game symbol: sharp(gs), star(sr), percent(zzz)
  * @returns {string} gameBiz code (hk4e_cn/hkrpg_cn/nap_cn)

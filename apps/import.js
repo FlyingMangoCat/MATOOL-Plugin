@@ -64,7 +64,7 @@ export class GachaImport extends plugin {
     }
 
     // ── process ──
-    this.reply('⏳ 正在解析抽卡链接，请稍候...')
+    this.reply('正在解析抽卡链接...')
 
     const result = await importGacha(gachaUrl, this.e.user_id, this.e.isMaster)
 
@@ -73,30 +73,20 @@ export class GachaImport extends plugin {
       const gameSym = { gs: '#', sr: '*', zzz: '%' }[data.game] || '#'
       const gameName = { gs: '原神', sr: '星穹铁道', zzz: '绝区零' }[data.game] || data.game
       this.reply(
-        `✅ 抽卡数据导入成功\n\n` +
-        `━━━━━━━━━━━━━━━━\n` +
-        ` UID   ${data.uid}\n` +
-        ` 游戏  ${gameName}\n` +
-        ` 记录  ${data.imported} 条\n` +
-        `━━━━━━━━━━━━━━━━\n\n` +
-        `查看分析： ${gameSym}分析${data.uid}`
+        `✅ 导入成功 ${gameName} ${data.uid}\n` +
+        `新增 ${data.imported} 条\n` +
+        `查看 ${gameSym}分析${data.uid}`
       )
     } else if (result.code === 0 && (!result.data || result.data.imported === 0)) {
-      this.reply(
-        `❌ 未导入新记录\n` +
-        `原因：服务器返回了空数据\n` +
-        `建议检查：\n` +
-        `1. 抽卡链接是否已过期（需重新生成）\n` +
-        `2. 服务器网络状况`
-      )
+      this.reply('❌ 未导入新记录\n链接可能已过期，请重新生成后重试')
     } else if (result.code === 401) {
-      this.reply(`❌ 未绑定 Key\n请使用 #墨安绑定[key] 绑定（示例: #墨安绑定mo-123456786）后再试`)
+      this.reply('❌ 未绑定 Key\n请先 #墨安绑定[key]')
     } else if (result.code === 402) {
-      this.reply(`❌ 抽卡链接无效\n原因：${result.message}`)
+      this.reply(`❌ 链接无效: ${result.message}`)
     } else if (result.code === 500) {
-      this.reply(`❌ 服务器错误\n原因：${result.message}\n\n请稍后重试或联系管理员`)
+      this.reply(`❌ 服务器错误: ${result.message}`)
     } else {
-      this.reply(`❌ 解析失败\n原因：${result.message || '未知错误'}`)
+      this.reply(`❌ 解析失败: ${result.message || '未知错误'}`)
     }
 
     return true

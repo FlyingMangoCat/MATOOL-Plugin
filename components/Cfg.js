@@ -97,6 +97,43 @@ class Cfg {
     this._writeYaml(filePath, this._data['KEY']['MOANKEY'])
   }
 
+  /** 个人绑定 Key：按 QQ 精确匹配（不含 master 旧数据） */
+  getPersonalKey(qq) {
+    const keys = this.get('KEY.MOANKEY.keys')
+    if (!Array.isArray(keys) || keys.length === 0) return ''
+    qq = String(qq)
+    for (const k of keys) {
+      if (k && typeof k === 'object' && String(k.qq) === qq && k.key) return k.key
+    }
+    return ''
+  }
+
+  /**
+   * 上传云端用 Key 归属解析：
+   *   用户绑定了个人 Key → 个人 Key（上传到个人账号）
+   *   否则设置了公用 Key → 公用 Key（上传到公用账号）
+   *   都没有 → 无 Key
+   * @returns {{ key: string, mode: 'personal'|'common'|null }}
+   */
+  resolveUploadKey(qq, isMaster = false) {
+    const personal = this.getPersonalKey(qq)
+    if (personal) return { key: personal, mode: 'personal' }
+    // 旧数据兼容：master 归属 key（仅主人可用）
+    if (isMaster) {
+      const keys = this.get('KEY.MOANKEY.keys')
+      if (Array.isArray(keys)) {
+        for (const k of keys) {
+          if (k && typeof k === 'object' && String(k.qq) === 'master' && k.key) {
+            return { key: k.key, mode: 'personal' }
+          }
+        }
+      }
+    }
+    const common = this.getCommonKey()
+    if (common) return { key: common, mode: 'common' }
+    return { key: '', mode: null }
+  }
+
   /** 清除公用 Key：切换回个人模式（仅主人操作） */
   clearCommonKey() {
     const filePath = `${PluginPath}/data/KEY/MOANKEY.yaml`

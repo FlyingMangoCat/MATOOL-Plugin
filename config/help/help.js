@@ -49,6 +49,16 @@ export const helpList = [
         desc: '导入 UIGF v2.2 / v4.2（需绑定 Key）',
       },
       {
+        icon: 85,
+        title: '#上传[uid]云端',
+        desc: '上传本地记录到云端（个人 Key 优先）',
+      },
+      {
+        icon: 84,
+        title: '#全部记录上传云端',
+        desc: '全部原神+星铁本地记录上传公用账号（仅主人）',
+      },
+      {
         icon: 73,
         title: '链接自动导入',
         desc: '发送抽卡链接自动导入（主人可禁用）',
@@ -76,7 +86,7 @@ export const helpList = [
       {
         icon: 63,
         title: '两种模式',
-        desc: '① 各自绑定 ② 公用模式全员统一走公用 Key',
+        desc: '① 各自绑定 ② 公用模式（上传云端个人 Key 优先）',
       },
     ],
   },
@@ -85,13 +95,18 @@ export const helpList = [
     list: [
       {
         icon: 58,
-        title: '#墨安切换模式[key]',
-        desc: '带 Key 切公用模式 / 不带 Key 切回个人模式',
+        title: '#墨安设置公用[key]',
+        desc: '设置公用 Key（设置后自动开启公用模式）',
       },
       {
         icon: 59,
-        title: '#墨安设置公用[key]',
-        desc: '同切换模式（设置公用 Key）',
+        title: '#墨安切换公用模式',
+        desc: '启用公用模式（需已设置公用 Key）',
+      },
+      {
+        icon: 59,
+        title: '#墨安切换个人模式',
+        desc: '切回个人模式（清除公用 Key）',
       },
       {
         icon: 254,
