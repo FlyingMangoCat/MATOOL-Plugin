@@ -36,41 +36,36 @@ export class matSet extends plugin {
     const qq = String(this.e.user_id)
     const key = this.e.msg.replace(/^#?墨安绑定\s*/i, '').trim()
     if (!key || key.length < 6) {
-      this.reply('❌ 请提供正确的 Key，格式: #墨安绑定[key]\n示例: #墨安绑定mo-123456786')
+      this.reply('请输入KEY哦~ 格式: #墨安绑定[key]')
       return true
     }
     Cfg.saveApiKey(key, qq)
-    this.reply(
-      `✅ Key 已绑定\n` +
-      `QQ: ${qq}\n` +
-      `Key: ${key.slice(0, 6)}...${key.slice(-4)}`
-    )
+    this.reply('✅ KEY绑定成功！')
     return true
   }
 
   /** 设置公用 Key（仅主人）：所有用户导入/导出/链接解析共用 */
   async setCommonKey() {
     if (!this.e.isMaster) {
-      this.reply('暂无权限，仅主人可用')
+      this.reply('仅主人可用哦~')
       return true
     }
     const key = this.e.msg.replace(/^#?墨安设置公用\s*/i, '').trim()
     if (!key || key.length < 6) {
-      this.reply('❌ 请提供正确的 Key，格式: #墨安设置公用[key]\n示例: #墨安设置公用mo-123456786')
+      this.reply('请输入KEY哦~ 格式: #墨安设置公用[key]')
       return true
     }
     Cfg.setCommonKey(key)
-    this.reply(`✅ 公用 Key 已设置，已开启公用模式\nKey: ${key.slice(0, 6)}...${key.slice(-4)}`)
+    this.reply('✅ 公用KEY设置成功！')
     return true
   }
 
   /** 官网/注册/Key 获取方法说明（所有用户） */
   async keyHelp() {
     this.reply(
-      '墨安 Key 获取\n' +
+      '墨安KEY获取\n' +
       '官网: http://111.170.175.22:5213\n' +
-      '注册: 官网 /register 注册，需注册码\n' +
-      '注册码: 加群 872488071 发送 #注册码获取\n' +
+      '注册: 官网 /register 注册，需注册码（加群 872488071 发送 #注册码获取）\n' +
       '生成: 登录控制台 - API Key 处生成（最多5个）\n' +
       '绑定: #墨安绑定[key]'
     )
@@ -80,56 +75,52 @@ export class matSet extends plugin {
   /** 切换公用模式（仅主人）：启用已设置的公用 Key */
   async switchCommon() {
     if (!this.e.isMaster) {
-      this.reply('暂无权限，仅主人可用')
+      this.reply('仅主人可用哦~')
       return true
     }
     const key = Cfg.getCommonKey()
     if (!key) {
-      this.reply('❌ 未设置公用 Key，无法切换\n请先 #墨安设置公用[key] 设置')
+      this.reply('未设置公用KEY哦~ 请先 #墨安设置公用[key]')
       return true
     }
-    this.reply(
-      `✅ 已切换公用模式\n` +
-      `Key: ${key.slice(0, 3)}...${key.slice(-4)}\n` +
-      '导入/导出/链接解析统一走公用 Key'
-    )
+    this.reply('✅ 已切换公用模式！')
     return true
   }
 
   /** 切换个人模式（仅主人）：清除公用 Key */
   async switchPersonal() {
     if (!this.e.isMaster) {
-      this.reply('暂无权限，仅主人可用')
+      this.reply('仅主人可用哦~')
       return true
     }
     if (!Cfg.getCommonKey()) {
-      this.reply('当前已是个人模式')
+      this.reply('当前已是个人模式哦~')
       return true
     }
     Cfg.clearCommonKey()
-    this.reply('✅ 已切换个人模式\n各用户需自行 #墨安绑定[key]')
+    this.reply('✅ 已切换个人模式！')
     return true
   }
 
   /** 禁用链接解析（仅主人） */
   async disableLinkParse() {
     if (!this.e.isMaster) {
-      this.reply('暂无权限，仅主人可用')
+      this.reply('仅主人可用哦~')
       return true
     }
     Cfg.setLinkParseEnabled(false)
-    this.reply('✅ 已禁用链接自动解析')
+    this.reply('✅ 已禁用链接解析')
     return true
   }
 
   /** 启用链接解析（仅主人） */
   async enableLinkParse() {
     if (!this.e.isMaster) {
-      this.reply('暂无权限，仅主人可用')
+      this.reply('仅主人可用哦~')
       return true
     }
     Cfg.setLinkParseEnabled(true)
-    this.reply('✅ 已启用链接自动解析')
+    this.reply('✅ 已启用链接解析')
     return true
   }
 }

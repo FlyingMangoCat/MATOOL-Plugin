@@ -28,7 +28,6 @@ const SYMBOL_GAME = { '*': 'sr', '%': 'zzz', '星铁': 'sr', '崩铁': 'sr', '�
 const GAME_DIR = { gs: 'gachaJson', sr: 'srJson' }
 const GAME_BIZ = { gs: 'hk4e_cn', sr: 'hkrpg_cn', zzz: 'nap_cn' }
 const GAME_NAME = { gs: '原神', sr: '星穹铁道', zzz: '绝区零' }
-const GAME_SYM = { gs: '#', sr: '*', zzz: '%' }
 
 export class matUpload extends plugin {
   constructor() {
@@ -99,24 +98,20 @@ export class matUpload extends plugin {
     return null
   }
 
-  _maskKey(key) {
-    return key.slice(0, 3) + '...' + key.slice(-4)
-  }
-
   /** 上传单个 UID 的本地记录 */
   async uploadOne() {
     const { uid, game } = this._parse(this.e.msg.trim())
     if (!uid) return false
 
     if (game === 'zzz') {
-      this.reply('❌ 暂不支持绝区零上传\n仅支持原神(#) / 星铁(*) 的本地记录')
+      this.reply('暂不支持绝区零上传哦~')
       return true
     }
 
     // 1. 解析 Key 归属（个人 Key 优先，其次公用 Key）
-    const { key, mode } = Cfg.resolveUploadKey(this.e.user_id, this.e.isMaster)
+    const { key } = Cfg.resolveUploadKey(this.e.user_id, this.e.isMaster)
     if (!key) {
-      this.reply('❌ 未绑定 Key\n请先 #墨安绑定[key] 绑定，或让主人设置公用 Key')
+      this.reply('功能需要绑定墨安助手KEY使用哦~')
       return true
     }
 
@@ -126,48 +121,40 @@ export class matUpload extends plugin {
     if (records === null) {
       const owner = this._findOwner(game, uid)
       if (owner) {
-        this.reply(`❌ UID ${uid} 的${gameName}记录不属于你\n仅本人账号可上传`)
+        this.reply(`UID ${uid} 的记录不属于你哦~`)
       } else {
-        this.reply(`❌ 本地无 UID ${uid} 的${gameName}记录\n仅支持本地插件（genshin-plugin）保存的记录`)
+        this.reply(`本地没有 UID ${uid} 的记录哦~`)
       }
       return true
     }
     if (records.length === 0) {
-      this.reply(`❌ UID ${uid} 的本地${gameName}记录为空`)
+      this.reply(`UID ${uid} 本地记录为空哦~`)
       return true
     }
 
     // 3. 上传
-    const modeText = mode === 'personal' ? '个人账号' : '公用账号'
-    const masked = this._maskKey(key)
-    this.reply(`正在上传 ${gameName} ${uid}（${records.length}条 → ${modeText} ${masked}）`)
+    this.reply(`正在上传 ${gameName} ${uid}（${records.length}条）...`)
 
     const r = await uploadGachaJSON(uid, GAME_BIZ[game], records, key)
     if (r.code !== 0) {
-      this.reply('❌ 上传失败: ' + (r.message || '未知错误'))
+      this.reply('上传失败哦~')
       return true
     }
-    const imported = r.data?.imported ?? records.length
-    this.reply(
-      `✅ ${gameName} ${uid} 上传成功\n` +
-      `${imported} 条 → ${modeText}（${masked}）\n` +
-      `查看 ${GAME_SYM[game]}分析${uid}`
-    )
+    this.reply(`✅ 有效 UID:${uid} 上传云端成功`)
     return true
   }
 
   /** 全部记录上传云端（仅主人，原神+星铁，上传到公用 Key 账号） */
   async uploadAll() {
     if (!this.e.isMaster) {
-      this.reply('暂无权限，仅主人可用')
+      this.reply('仅主人可用哦~')
       return true
     }
     const commonKey = Cfg.getCommonKey()
     if (!commonKey) {
-      this.reply('❌ 未设置公用 Key\n请先 #墨安设置公用[key]')
+      this.reply('未设置公用KEY哦~ 请先 #墨安设置公用[key]')
       return true
     }
-    const masked = this._maskKey(commonKey)
 
     // 收集本地全部用户/UID 记录（原神 + 星铁）
     const jobs = []
@@ -184,12 +171,12 @@ export class matUpload extends plugin {
       }
     }
     if (!jobs.length) {
-      this.reply('❌ 本地没有可上传的记录')
+      this.reply('本地没有可上传的记录哦~')
       return true
     }
 
     const total = jobs.reduce((s, j) => s + j.records.length, 0)
-    this.reply(`正在上传 ${jobs.length} 个 UID 共 ${total} 条记录 → 公用账号（${masked}）`)
+    this.reply(`正在上传 ${jobs.length} 个UID共${total}条，请稍候...`)
 
     const ok = [], fail = []
     for (const j of jobs) {
@@ -198,20 +185,17 @@ export class matUpload extends plugin {
       else fail.push({ ...j, reason: r.message || '未知错误' })
     }
 
-    const okCount = ok.reduce((s, j) => s + j.records.length, 0)
     const gsOk = ok.filter(j => j.game === 'gs').length
     const srOk = ok.filter(j => j.game === 'sr').length
     const gsFail = fail.filter(j => j.game === 'gs').length
     const srFail = fail.filter(j => j.game === 'sr').length
     const lines = [
-      ok.length === jobs.length ? '✅ 全部上传完成' : '✅ 全部上传完成（部分失败）',
-      `原神: 成功 ${gsOk} / 失败 ${gsFail}`,
-      `星铁: 成功 ${srOk} / 失败 ${srFail}`,
-      `共 ${okCount} / ${total} 条 → 公用账号（${masked}）`,
+      ok.length === jobs.length ? '✅ 全部上传完成！' : '✅ 全部上传完成（部分失败）',
+      `原神 成功 ${gsOk} / 失败 ${gsFail} · 星铁 成功 ${srOk} / 失败 ${srFail}`,
     ]
     if (fail.length) {
       for (const j of fail.slice(0, 10)) {
-        lines.push(`❌ ${GAME_NAME[j.game]} ${j.uid}（${j.records.length}条）: ${j.reason}`)
+        lines.push(`${GAME_NAME[j.game]} ${j.uid} 上传失败哦~`)
       }
       if (fail.length > 10) lines.push(`... 及另外 ${fail.length - 10} 个失败`)
     }

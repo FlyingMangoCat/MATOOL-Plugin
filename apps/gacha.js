@@ -78,7 +78,7 @@ export class matGacha extends plugin {
       const buf = Buffer.from(await resp.arrayBuffer())
       this.reply(segment.image('base64://' + buf.toString('base64')))
     } catch (e) {
-      this.reply('❌ 生成失败: ' + e.message + '\n请确认 UID 正确且已有抽卡记录')
+      this.reply('生成失败哦~ 请确认UID正确且已有记录')
     }
     return true
   }
@@ -103,7 +103,7 @@ export class matGacha extends plugin {
     const section = GAME_MAP[game]?.uigfSection || 'hk4e'
     const groups = data[section] || []
     if (!groups.length || !groups[0].list.length) {
-      this.reply(gameName + ' ' + uid + ' 暂无抽卡记录')
+      this.reply(gameName + ' ' + uid + ' 暂无记录哦~')
       return false
     }
 

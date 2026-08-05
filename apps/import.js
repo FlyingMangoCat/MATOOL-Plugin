@@ -71,22 +71,19 @@ export class GachaImport extends plugin {
     if (result.code === 0 && result.data?.imported > 0) {
       const data = result.data
       const gameSym = { gs: '#', sr: '*', zzz: '%' }[data.game] || '#'
-      const gameName = { gs: '原神', sr: '星穹铁道', zzz: '绝区零' }[data.game] || data.game
-      this.reply(
-        `✅ 导入成功 ${gameName} ${data.uid}\n` +
-        `新增 ${data.imported} 条\n` +
-        `查看 ${gameSym}分析${data.uid}`
-      )
+      this.reply(`✅ 导入成功！查看${gameSym}分析${data.uid}`)
     } else if (result.code === 0 && (!result.data || result.data.imported === 0)) {
-      this.reply('❌ 未导入新记录\n链接可能已过期，请重新生成后重试')
+      this.reply('未导入新记录哦~ 链接可能已过期')
     } else if (result.code === 401) {
-      this.reply('❌ 未绑定 Key\n请先 #墨安绑定[key]')
+      this.reply(Cfg.getKeyByQq(this.e.user_id, this.e.isMaster) ? 'KEY绑定错误哦~请查看是否有效或已被禁用' : '功能需要绑定墨安助手KEY使用哦~')
     } else if (result.code === 402) {
-      this.reply(`❌ 链接无效: ${result.message}`)
+      this.reply(`链接无效哦~ ${result.message}`)
+    } else if (result.code === 408) {
+      this.reply('网络超时哦~ 请重试')
     } else if (result.code === 500) {
-      this.reply(`❌ 服务器错误: ${result.message}`)
+      this.reply('服务器错误哦~ 请稍后再试')
     } else {
-      this.reply(`❌ 解析失败: ${result.message || '未知错误'}`)
+      this.reply(`解析失败哦~ ${result.message || '未知错误'}`)
     }
 
     return true
