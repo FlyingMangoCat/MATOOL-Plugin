@@ -1,7 +1,7 @@
 {
   "name": "MATOOL-Plugin",
   "version": "1.0.0",
-  "description": "基于墨安游戏助手的原神/星穹铁道/绝区零抽卡分析、云端记录同步插件",
+  "description": "基于墨安游戏助手的插件",
   "author": "Muoan",
   "type": "module",
   "isPlugin": true,
