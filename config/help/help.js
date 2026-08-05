@@ -49,6 +49,11 @@ export const helpList = [
         desc: '导入 UIGF v2.2 / v4.2（需绑定 Key）',
       },
       {
+        icon: 86,
+        title: '#拉取[uid]云端记录',
+        desc: '云端记录拉取写入本地（genshin/miao 可用）',
+      },
+      {
         icon: 85,
         title: '#上传[uid]云端',
         desc: '上传本地记录到云端（个人 Key 优先）',

@@ -3,6 +3,7 @@
  *
  * 导出： #导出UID记录 → 发链接 → 验证 → JSON文件
  * 导入： #导入UID记录 → 发链接 → 验证 → 发JSON → 导入
+ * 拉取： #拉取UID云端记录 → 发链接 → 验证 → 写入本地genshin/miao目录
  *
  * 游戏符号：#原神 *星铁 %绝区零（不指定默认原神）
  *
@@ -49,6 +50,7 @@ export class matRecords extends plugin {
       rule: [
         { reg: /^#?(?:[*%]|星铁|绝区零)?(导出)\s*\d{8,10}\s*(记录|json)/i, fnc: 'exportCmd' },
         { reg: /^#?(?:[*%]|星铁|绝区零)?(导入)\s*\d{8,10}\s*(记录|json)/i, fnc: 'importStart' },
+        { reg: /^#?(?:[*%]|星铁|绝区零)?(拉取)\s*\d{8,10}\s*云端\s*(记录|json)/i, fnc: 'pullCmd' },
       ],
     })
   }
@@ -84,6 +86,23 @@ export class matRecords extends plugin {
     if (!uid) return false
     stSet(this.e.user_id, { step: 'link', mode: 'import', uid, gameBiz, gameName })
     this.reply(`导入 ${gameName} ${uid}\n请发送该账号的抽卡链接验证哦~`)
+    return true
+  }
+
+  // ═══════════════ 拉取 ═══════════════
+
+  async pullCmd() {
+    const key = Cfg.getKeyByQq(this.e.user_id, this.e.isMaster)
+    if (!key) {
+      this.reply('功能需要绑定墨安助手KEY使用哦~')
+      return true
+    }
+    const uid = this._uid()
+    const gameBiz = this._gameBiz()
+    const gameName = gameBizToName(gameBiz)
+    if (!uid) return false
+    stSet(this.e.user_id, { step: 'link', mode: 'pull', uid, gameBiz, gameName })
+    this.reply(`拉取 ${gameName} ${uid}\n请发送该账号的抽卡链接验证哦~`)
     return true
   }
 
@@ -135,13 +154,21 @@ export class matRecords extends plugin {
       // 使用验证后服务器返回的 game_biz（自动检测），而不是命令输入的默认值
       const actualBiz = vb
       const actualName = gameBizToName(actualBiz)
-      return await this._doExport(state.uid, actualBiz, actualName)    } else {
-      // 导入：进入等待 JSON 阶段
-      const actualName = gameBizToName(vb)
-      stSet(this.e.user_id, { step: 'json', mode: 'import', uid: state.uid, gameBiz: vb, gameName: actualName })
-      this.reply('✅ 验证成功！请发送JSON文件哦~')
-      return 'return'
+      return await this._doExport(state.uid, actualBiz, actualName)
     }
+    if (state.mode === 'pull') {
+      // 拉取：验证通过后从云端拉取并写入本地 genshin/miao 目录
+      stDel(this.e.user_id)
+      this.reply('✅ 验证成功！正在拉取...')
+      const actualBiz = vb
+      const actualName = gameBizToName(actualBiz)
+      return await this._doPull(state.uid, actualBiz, actualName)
+    }
+    // 导入：进入等待 JSON 阶段
+    const actualName = gameBizToName(vb)
+    stSet(this.e.user_id, { step: 'json', mode: 'import', uid: state.uid, gameBiz: vb, gameName: actualName })
+    this.reply('✅ 验证成功！请发送JSON文件哦~')
+    return 'return'
   }
 
   async _handleJson(state) {
@@ -249,6 +276,31 @@ export class matRecords extends plugin {
     return 'return'
   }
 
+  async _doPull(uid, gameBiz, gameName) {
+    // genshin/miao 本地无绝区零标准目录，暂不支持
+    if (gameBiz === 'nap_cn') {
+      this.reply('暂不支持绝区零拉取哦~')
+      return 'return'
+    }
+    const r = await exportGacha(uid, gameBiz, this.e.user_id, this.e.isMaster)
+    if (r.code !== 0) {
+      this.reply('拉取失败哦~')
+      return 'return'
+    }
+    try {
+      const records = extractRecords(r.data, gameBiz)
+      if (!records.length) {
+        this.reply('云端没有记录哦~')
+        return 'return'
+      }
+      const pools = writeLocal(gameBiz, String(this.e.user_id), uid, records)
+      this.reply(`✅ 拉取成功 ${gameName} ${uid}（${records.length}条 → ${pools}个卡池）`)
+    } catch (e) {
+      this.reply('拉取失败哦~')
+    }
+    return 'return'
+  }
+
   async _doImport(uid, gameBiz, gameName, text) {
     stDel(this.e.user_id)
     let records
@@ -314,4 +366,69 @@ export class matRecords extends plugin {
     const c = m.charAt(0)
     return symbolToGameBiz('*%'.includes(c) ? c : '#')
   }
+}
+
+// ═══════════════ 拉取写本地（纯函数，便于测试） ═══════════════
+
+/** 从 export-json 响应中提取记录数组（兼容 UIGF v2/v4 与旧格式） */
+export function extractRecords(data, gameBiz) {
+  if (!data || typeof data !== 'object') return []
+  const gameMap = { hk4e_cn: 'hk4e', hkrpg_cn: 'hkrpg', nap_cn: 'nap' }
+  const uigfKey = gameMap[gameBiz]
+  const list = []
+  if (data.info && uigfKey && Array.isArray(data[uigfKey])) {
+    // UIGF v4.x 分区格式：[{ uid, timezone, lang, list }]
+    for (const group of data[uigfKey]) {
+      if (Array.isArray(group?.list)) list.push(...group.list)
+    }
+  } else if (Array.isArray(data.list)) {
+    // UIGF v2.x 扁平格式
+    list.push(...data.list)
+  } else if (Array.isArray(data)) {
+    list.push(...data)
+  }
+  return list
+}
+
+/**
+ * 按 gacha_type 拆分记录并写入 genshin/miao 本地目录（data/gachaJson|srJson/{userId}/{uid}/{type}.json）
+ * 已存在文件则合并去重（按 id），按时间升序排列。返回写入的卡池文件数。
+ */
+export function writeLocal(gameBiz, userId, uid, records) {
+  const dirName = gameBiz === 'hkrpg_cn' ? 'srJson' : 'gachaJson'
+  const base = path.join(process.cwd(), 'data', dirName, String(userId), String(uid))
+  fs.mkdirSync(base, { recursive: true })
+
+  // 按 gacha_type 分组
+  const groups = {}
+  for (const r of records) {
+    if (!r || typeof r !== 'object') continue
+    const gt = String(r.gacha_type ?? '')
+    if (!gt) continue
+    const item = { ...r }
+    delete item._isoTime // 插件私有字段
+    ;(groups[gt] ||= []).push(item)
+  }
+
+  let written = 0
+  for (const [gt, list] of Object.entries(groups)) {
+    const fp = path.join(base, gt + '.json')
+    let merged = []
+    if (fs.existsSync(fp)) {
+      try {
+        const old = JSON.parse(fs.readFileSync(fp, 'utf8'))
+        if (Array.isArray(old)) merged = old
+      } catch (_) { /* 损坏文件跳过 */ }
+    }
+    const seen = new Set(merged.map(r => String(r.id)))
+    for (const r of list) {
+      if (r.id == null || seen.has(String(r.id))) continue
+      seen.add(String(r.id))
+      merged.push(r)
+    }
+    merged.sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
+    fs.writeFileSync(fp, JSON.stringify(merged, null, 2), 'utf8')
+    written++
+  }
+  return written
 }
