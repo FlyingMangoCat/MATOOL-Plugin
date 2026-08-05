@@ -48,7 +48,7 @@ export class matRecords extends plugin {
       event: 'message',
       priority: 9999,
       rule: [
-        { reg: /^#?(?:[*%]|星铁|绝区零)?(导出)\s*\d{8,10}\s*(记录|json)/i, fnc: 'exportCmd' },
+        { reg: /^#?(?:[*%]|星铁|绝区零)?(导出)\s*\d{8,10}\s*(记录|json)\s*(v22)?/i, fnc: 'exportCmd' },
         { reg: /^#?(?:[*%]|星铁|绝区零)?(导入)\s*\d{8,10}\s*(记录|json)/i, fnc: 'importStart' },
         { reg: /^#?(?:[*%]|星铁|绝区零)?(拉取)\s*\d{8,10}\s*云端\s*(记录|json)/i, fnc: 'pullCmd' },
       ],
@@ -68,8 +68,9 @@ export class matRecords extends plugin {
     const gameBiz = this._gameBiz()
     const gameName = gameBizToName(gameBiz)
     if (!uid) return false
-    stSet(this.e.user_id, { step: 'link', mode: 'export', uid, gameBiz, gameName, key })
-    this.reply(`导出 ${gameName} ${uid}\n请发送该账号的抽卡链接验证哦~`)
+    const format = /v22/i.test(this.e.msg) ? 'v22' : 'v42'
+    stSet(this.e.user_id, { step: 'link', mode: 'export', uid, gameBiz, gameName, key, format })
+    this.reply(`导出 ${gameName} ${uid}${format === 'v22' ? '（UIGF v2.2）' : ''}\n请发送该账号的抽卡链接验证哦~`)
     return true
   }
 
@@ -159,7 +160,7 @@ export class matRecords extends plugin {
       // 使用验证后服务器返回的 game_biz（自动检测），而不是命令输入的默认值
       const actualBiz = vb
       const actualName = gameBizToName(actualBiz)
-      return await this._doExport(state.uid, actualBiz, actualName)
+      return await this._doExport(state.uid, actualBiz, actualName, state.format || 'v42')
     }
     if (state.mode === 'pull') {
       // 拉取：验证通过后从云端拉取并写入本地 genshin/miao 目录（个人 Key 优先，其次公用 Key）
@@ -247,8 +248,8 @@ export class matRecords extends plugin {
     return this._doImport(uid, gameBiz, gameName, text)
   }
 
-  async _doExport(uid, gameBiz, gameName) {
-    const r = await exportGacha(uid, gameBiz, this.e.user_id, this.e.isMaster)
+  async _doExport(uid, gameBiz, gameName, format = 'v42') {
+    const r = await exportGacha(uid, gameBiz, this.e.user_id, this.e.isMaster, '', format)
     if (r.code !== 0) {
       this.reply('导出失败哦~')
       return 'return'
@@ -268,13 +269,13 @@ export class matRecords extends plugin {
         total = data.total || 0
       }
       const fc = JSON.stringify(data, null, 2)
-      const fn = 'gacha_' + uid + '_' + gameName + '.json'
+      const fn = 'gacha_' + uid + '_' + gameName + '_' + (format === 'v22' ? 'v2.2' : 'v4.2') + '.json'
       const dir = process.cwd() + '/data/MATOOL-Plugin/'
       const fp = path.join(dir, fn)
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
       fs.writeFileSync(fp, fc, 'utf8')
       try { this.e.reply(segment.file(fp)) } catch (_) {}
-      this.reply(`✅ 导出成功 ${gameName} ${uid}（${total}条）`)
+      this.reply(`✅ 导出成功 ${gameName} ${uid}（${total}条${format === 'v22' ? '，UIGF v2.2' : ''}）`)
     } catch (e) {
       this.reply('导出失败哦~')
     }

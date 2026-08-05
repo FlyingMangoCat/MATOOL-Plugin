@@ -41,7 +41,7 @@ export const helpList = [
       {
         icon: 84,
         title: '#导出[uid]记录',
-        desc: '导出 UIGF v4.2 JSON（需绑定 Key）',
+        desc: '导出 UIGF v4.2 JSON，命令后加 v22 可导出 v2.2（需绑定 Key）',
       },
       {
         icon: 85,

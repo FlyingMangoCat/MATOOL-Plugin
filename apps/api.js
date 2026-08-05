@@ -166,9 +166,10 @@ export async function verifyLink(link, qq, isMaster = false, apiKey = '') {
  * @param {string} uid - Game UID
  * @param {string} gameBiz - Game biz code (hk4e_cn/hkrpg_cn/nap_cn) or empty for all
  * @param {string} apiKey - 可选，显式指定 Key（默认按 QQ 模式解析）
+ * @param {string} format - 可选，导出格式 v42（默认）/ v22
  * @returns {{ code: number, message: string, data?: object }}
  */
-export async function exportGacha(uid, gameBiz, qq, isMaster = false, apiKey = '') {
+export async function exportGacha(uid, gameBiz, qq, isMaster = false, apiKey = '', format = 'v42') {
   const key = apiKey || getAuthKey(qq, isMaster)
   if (!key) {
     return { code: 401, message: '未绑定 Key，请使用 #墨安绑定[key] 绑定' }
@@ -185,7 +186,7 @@ export async function exportGacha(uid, gameBiz, qq, isMaster = false, apiKey = '
         'User-Agent': 'MATOOL-Plugin/Yunzai',
         'X-API-Key': key,
       },
-      body: JSON.stringify({ uid, game_biz: gameBiz || '' }),
+      body: JSON.stringify({ uid, game_biz: gameBiz || '', format: format || 'v42' }),
     })
     const json = await resp.json()
 
