@@ -20,12 +20,11 @@ try {
     }
   }
   walk(path.join(__dirname, 'apps'))
-
+//和意味？
   await Promise.all(files.map(async (file) => {
     try {
       let name = path.basename(file, '.js')
       let mod = await import(pathToFileURL(file).href)
-      // 优先 default；无 default 时取 export 中的插件类（class），避免纯函数/对象被当作插件类实例化
       let cls = mod.default
       if (!cls) {
         cls = Object.values(mod).find((v) => typeof v === 'function' && /^class\s/.test(v.toString()))
