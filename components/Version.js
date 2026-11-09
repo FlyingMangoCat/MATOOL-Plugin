@@ -17,7 +17,7 @@ try {
 
 const isMiao = !!yunzaiPkg.dependencies?.sequelize || !!global.Bot?.versions?.miao
 const isMangoCat = yunzaiPkg.name === 'MangoCat-Yunzai'
-const isTrss = !!yunzaiPkg.name?.toLowerCase().includes('trss') || Array.isArray(global.Bot?.uin)
+const isTrss = (!!yunzaiPkg.name?.toLowerCase().includes('trss') || Array.isArray(global.Bot?.uin)) && !isMangoCat
 
 const Version = {
   pluginName: pluginPkg.name || 'MATOOL-Plugin',
